@@ -2,9 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Grid
 {
 
+    public class connectionsList
+    {
+        public connectionsList(Tile inTile, Tile.directions indir)
+        {
+            this.tile = inTile;
+            this.direction = indir;
+        }
+        public Tile tile;
+        public Tile.directions direction;
+
+    }
 
     private int maxX = 100;
     private int maxY = 100;
@@ -52,7 +64,7 @@ public class Grid
         foreach (Vector2 placedCoords in placedGrids)
         {
 
-            List<Vector2> neighbours = gridArr[(int)placedCoords.x, (int)placedCoords.y].getNeighbours((int)placedCoords.x,(int)placedCoords.y);
+            List<Vector2> neighbours = gridArr[(int)placedCoords.x, (int)placedCoords.y].getNeighbours((int)placedCoords.x, (int)placedCoords.y);
             foreach (Vector2 coords in neighbours)
             {
                 if (tileIsOccupied((int)coords.x, (int)coords.y))
@@ -168,11 +180,143 @@ public class Grid
     }
     public bool tileIsOccupied(int x, int y)
     {
-        if(x < 0 || y < 0) return true;
+        if (x < 0 || y < 0) return true;
         if (gridArr[x, y])
         {
             return true;
         }
         return false;
     }
+
+
+
+
+    public List<connectionsList> find_City(Tile inTile, Tile.directions side)
+    {
+
+        List<connectionsList> connected = find_connected_sides(inTile, side);
+        List<connectionsList> unexplored = find_adjacent_sides(connected);
+        List<connectionsList> ignored = new List<connectionsList>();
+        
+        while (unexplored.Count != 0)
+        {
+            Debug.Log(unexplored.Count);
+            connectionsList tileToExplore = unexplored[unexplored.Count - 1];
+            unexplored.RemoveAt(unexplored.Count - 1);
+
+            Tile new_tile = gridArr[tileToExplore.tile.x, tileToExplore.tile.y];
+
+            if (new_tile == null)
+            {
+                ignored.Add(tileToExplore);
+                continue;
+            }
+
+        }
+/*
+            List<connectionsList> new_connected = find_connected_sides(tileToExplore.tile, tileToExplore.direction);
+
+            foreach (connectionsList conn in new_connected)
+            {
+                connectionsList newTile = conn;
+                if (!connected.Contains(newTile))
+                {
+                    connected.Add(newTile);
+                }
+            }
+            List<connectionsList> new_unexpored = find_adjacent_sides(new_connected);
+            foreach (connectionsList new_To_Explore in new_unexpored)
+            {
+                if (!connected.Contains(new_To_Explore) || !unexplored.Contains(new_To_Explore) || !ignored.Contains(new_To_Explore))
+                {
+                    unexplored.Add(new_To_Explore);
+                }
+
+            }
+
+        }
+
+*/
+
+        return connected;
+
+
+    }
+
+
+    public List<connectionsList> find_connected_sides(Tile intile, Tile.directions side)
+    {
+        List<connectionsList> newConnections = new List<connectionsList>();
+
+        foreach (Tile.TileConnections connectedtile in intile.cityConnections)
+        {
+            foreach (Tile.directions connectedside in connectedtile.list)
+            {
+
+                newConnections.Add(new connectionsList(intile, connectedside));
+
+            }
+
+        }
+
+        return newConnections;
+    }
+
+    public List<connectionsList> find_adjacent_sides(List<connectionsList> connections)
+    {
+        List<connectionsList> adjacentTiles = new List<connectionsList>();
+        foreach (connectionsList con in connections)
+        {
+            Tile.directions dir = con.direction;
+            Tile inTile = con.tile;
+            Tile.directions adjacent_direction = adjacent(dir);
+            if (adjacent_direction == Tile.directions.DOWN)
+            {
+                if (!tileIsOccupied(inTile.x, inTile.y + 1)) continue;
+                adjacentTiles.Add(new connectionsList(gridArr[inTile.x, inTile.y + 1], Tile.directions.TOP));
+            }
+            if (adjacent_direction == Tile.directions.TOP)
+            {
+                if (!tileIsOccupied(inTile.x, inTile.y - 1)) continue;
+                adjacentTiles.Add(new connectionsList(gridArr[inTile.x, inTile.y - 1], Tile.directions.DOWN));
+            }
+            if (adjacent_direction == Tile.directions.LEFT)
+            {
+                if (!tileIsOccupied(inTile.x + 1, inTile.y)) continue;
+                adjacentTiles.Add(new connectionsList(gridArr[inTile.x + 1, inTile.y], Tile.directions.RIGHT));
+            }
+            if (adjacent_direction == Tile.directions.RIGHT)
+            {
+                if (!tileIsOccupied(inTile.x - 1, inTile.y)) continue;
+                adjacentTiles.Add(new connectionsList(gridArr[inTile.x - 1, inTile.y], Tile.directions.LEFT));
+            }
+
+        }
+
+        return adjacentTiles;
+    }
+
+    public Tile.directions adjacent(Tile.directions side)
+    {
+        if (side == Tile.directions.TOP)
+        {
+            return Tile.directions.DOWN;
+        }
+        else if (side == Tile.directions.DOWN)
+        {
+            return Tile.directions.TOP;
+        }
+        else if (side == Tile.directions.LEFT)
+        {
+            return Tile.directions.RIGHT;
+        }
+        else
+        {
+            return Tile.directions.LEFT;
+        }
+
+
+    }
+
+
 }

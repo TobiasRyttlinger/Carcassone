@@ -194,7 +194,7 @@ MonoBehaviour:
   riverConnections: []
   roadConnections: []
   grassConnections:
-  - list: 0000000003000000
+  - list: 0200000003000000
 --- !u!1 &4720612803071014499
 GameObject:
   m_ObjectHideFlags: 0

@@ -25,9 +25,10 @@ public class Player : MonoBehaviour
     public Grid gridManager;
     private bool three_D;
     Plane plane = new Plane(Vector3.up, 0);
-
+    public Tile lastPlacedTile;
     private bool tileInstantiated = false;
-
+    public bool placedTile = false;
+    public bool placedMeep = false;
     void Start()
     {
         score = 0;
@@ -65,7 +66,7 @@ public class Player : MonoBehaviour
                     selectedPos.x = Mathf.Floor(pos.x);
                     selectedPos.y = Mathf.Floor(pos.z);
                 }
-        Debug.Log(selectedPos);
+                Debug.Log(selectedPos);
                 if (gridManager.tileIsOccupied((int)selectedPos.x, (int)selectedPos.y))
                 {
                     PlaceButton.interactable = false;
@@ -87,9 +88,9 @@ public class Player : MonoBehaviour
                     tileInstantiated = true;
 
                 }
-       
-                    gridManager.generateAvaliableSpots(tileInHand);
-                
+
+                gridManager.generateAvaliableSpots(tileInHand);
+
 
                 List<Vector2> avaliablePlacements = gridManager.avaliableGrids;
 
@@ -101,11 +102,24 @@ public class Player : MonoBehaviour
                     Debug.DrawLine(new Vector3(v.x + 1, 0, v.y), new Vector3(v.x + 1, 0, v.y + 1), Color.white, 0.1f);
                     Debug.DrawLine(new Vector3(v.x, 0, v.y + 1), new Vector3(v.x + 1, 0, v.y + 1), Color.white, 0.1f);
                 }
+              //  while (avaliablePlacements.Count < 3)
+              //  {
+                    rotate();
+               // }
+                int rand = Random.Range(0, avaliablePlacements.Count - 1);
+                if (!gridManager.tileIsOccupied((int)avaliablePlacements[rand].x, (int)avaliablePlacements[rand].y))
+                {
+                    selectedPos.x = Mathf.Floor(avaliablePlacements[rand].x);
+                    selectedPos.y = Mathf.Floor(avaliablePlacements[rand].y);
+                    place();
+                    avaliablePlacements.Clear();
+                }
+
 
             }
             myCamera.enabled = true;
             PlaceButton.gameObject.SetActive(true);
-    
+
         }
         else
         {
@@ -150,6 +164,8 @@ public class Player : MonoBehaviour
         gridManager.placeTile((int)this.selectedPos.x, (int)this.selectedPos.y, tileInHand);
         Destroy(currTileVis.gameObject);
         tileInstantiated = false;
+        placedTile = true;
+        lastPlacedTile = tileInHand;
 
     }
 

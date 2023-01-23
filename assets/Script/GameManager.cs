@@ -14,10 +14,15 @@ public class GameManager : MonoBehaviour
 
     public bool river = true;
     public Grid playGrid;
+
+    private int xSize = 100;
+    private int ySize = 100;
+
     // Start is called before the first frame update
     void Start()
     {
-        playGrid = new Grid(100, 100);
+        playGrid = new Grid(xSize, ySize);
+
         if (playerManager == null)
         {
             playerManager = GameObject.FindObjectOfType<PlayerManager>();
@@ -26,7 +31,7 @@ public class GameManager : MonoBehaviour
         {
             p.gridManager = playGrid;
         }
- 
+
 
         scramblePile();
 
@@ -64,21 +69,41 @@ public class GameManager : MonoBehaviour
         {
             p.tilesLeft.text = Tiles.Count.ToString();
         }
-
-        if (Tiles.Count > 0)
+        //TilePhase
+        if (!CurrPlayer.placedTile)
         {
-            drawTile();
-        }
-        else
-        {
-            foreach (Player p in playerManager.GetPlayers())
+            if (Tiles.Count > 0)
             {
-                if (!p.HasTile)
-                {
-                    p.PlaceButton.interactable = false;
-                }
-
+                drawTile();
+                CurrPlayer.placedMeep = false;
+                playGrid.generateAvaliableSpots(CurrPlayer.tileInHand);
             }
+            else
+            {
+                foreach (Player p in playerManager.GetPlayers())
+                {
+                    if (!p.HasTile)
+                    {
+                        p.PlaceButton.interactable = false;
+                    }
+
+                }
+            }
+
+        }
+        //MeepPhase
+        if (!CurrPlayer.placedMeep && CurrPlayer.placedTile)
+        {
+            Debug.Log("Meepphase");
+            foreach (Tile.directions side in CurrPlayer.lastPlacedTile.Sides)
+            {
+                List<Grid.connectionsList> temp = playGrid.find_City(CurrPlayer.lastPlacedTile,side);
+                Debug.Log(temp);
+                temp.Clear();
+            }
+
+            CurrPlayer.placedMeep = true;
+            CurrPlayer.placedTile = false;
         }
 
     }
@@ -99,7 +124,7 @@ public class GameManager : MonoBehaviour
             return;
 
         }
-      
+
     }
 
     public void scramblePile()

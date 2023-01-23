@@ -255,7 +255,6 @@ MonoBehaviour:
   - list: 01000000
   - list: 02000000
   riverConnections: []
-  roadConnections:
-  - list: 1000000002000000
+  roadConnections: []
   grassConnections:
   - list: 0000000003000000
