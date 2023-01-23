@@ -130,8 +130,7 @@ MonoBehaviour:
   cityConnections:
   - list: 01000000
   riverConnections: []
-  roadConnections:
-  - list: 1000000002000000
+  roadConnections: []
   grassConnections:
   - list: 000000000200000003000000
 --- !u!1 &2817323902472983185
