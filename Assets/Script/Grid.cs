@@ -75,7 +75,6 @@ public class Grid
     public void generateAvaliableSpots(Tile inTile)
     {
 
-
         //River
         //Loop through all placed tiles!
         foreach (Vector2 placedCoords in placedGrids)

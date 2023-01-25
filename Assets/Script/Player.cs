@@ -27,7 +27,7 @@ public class Player : MonoBehaviour
     public Tile tileInHand;
     private int score;
     public Tile currTileVis;
-
+    public bool autoPlace = false;
     public Button PlaceButton;
     public Button RotateButton;
     public RenderTexture renderTexture;
@@ -73,34 +73,47 @@ public class Player : MonoBehaviour
             if (Input.GetMouseButtonDown(0))
             {
                 Vector3 pos = myCamera.ScreenToWorldPoint(Input.mousePosition);
-                Ray ray = myCamera.ScreenPointToRay(Input.mousePosition);
+                var ray = myCamera.ScreenPointToRay(Input.mousePosition);
 
                 float distance;
                 if (plane.Raycast(ray, out distance))
                 {
                     pos = ray.GetPoint(distance);
                 }
-                if (pos.x > 0 && pos.z > 0 && gridManager.avaliableGrids.Contains(new Vector2(Mathf.Floor(pos.x), Mathf.Floor(pos.z))))
+                if (!placedTile)
                 {
-                    //Dont record clicks over ui elements.
-                    if (IsPointerOverUIObject())
+                    if (pos.x > 0 && pos.z > 0 && gridManager.avaliableGrids.Contains(new Vector2(Mathf.Floor(pos.x), Mathf.Floor(pos.z))))
                     {
-                        return;
+                        //Dont record clicks over ui elements.
+                        if (IsPointerOverUIObject())
+                        {
+                            return;
+                        }
+                        //Store selection
+                        selectedPos.x = Mathf.Floor(pos.x);
+                        selectedPos.y = Mathf.Floor(pos.z);
                     }
-                    //Store selection
-                    selectedPos.x = Mathf.Floor(pos.x);
-                    selectedPos.y = Mathf.Floor(pos.z);
+
+                    if (gridManager.tileIsOccupied((int)selectedPos.x, (int)selectedPos.y))
+                    {
+                        PlaceButton.interactable = false;
+                    }
+                    else
+                    {
+
+                        PlaceButton.interactable = true;
+                    }
+                }
+                else if (placedTile)
+                {
+                    RaycastHit hit;
+                    if (Physics.Raycast(ray, out hit))
+                    {
+                        if (lastPlacedTile.transform.name == "MyObjectName") Debug.Log("My object is clicked by mouse");
+                        placedMeep = true;
+                    }
                 }
 
-                if (gridManager.tileIsOccupied((int)selectedPos.x, (int)selectedPos.y))
-                {
-                    PlaceButton.interactable = false;
-                }
-                else
-                {
-
-                    PlaceButton.interactable = true;
-                }
             }
 
 
@@ -131,30 +144,34 @@ public class Player : MonoBehaviour
                 int failsafe = 0;
 
                 //Autoplace tiles
-                while (avaliablePlacements.Count < 1)
+                if (autoPlace)
                 {
-                    rotate();
-                    if (failsafe > 4)
+                    while (avaliablePlacements.Count < 1)
                     {
-                        //Discard!
-                        tileInHand = GM.Tiles[GM.Tiles.Count-1];
+                        rotate();
+                        if (failsafe > 4)
+                        {
+                            //Discard!
+                            tileInHand = GM.Tiles[GM.Tiles.Count - 1];
 
-                        break;
+                            break;
+                        }
+                        failsafe++;
                     }
-                    failsafe++;
-                }
-                int rand = Random.Range(0, avaliablePlacements.Count - 1);
-                if (avaliablePlacements.Count > 0)
-                {
-                    if (!gridManager.tileIsOccupied((int)avaliablePlacements[rand].x, (int)avaliablePlacements[rand].y))
+                    int rand = Random.Range(0, avaliablePlacements.Count - 1);
+                    if (avaliablePlacements.Count > 0)
                     {
-                        selectedPos.x = Mathf.Floor(avaliablePlacements[rand].x);
-                        selectedPos.y = Mathf.Floor(avaliablePlacements[rand].y);
-                        place();
-                        avaliablePlacements.Clear();
+                        if (!gridManager.tileIsOccupied((int)avaliablePlacements[rand].x, (int)avaliablePlacements[rand].y))
+                        {
+                            selectedPos.x = Mathf.Floor(avaliablePlacements[rand].x);
+                            selectedPos.y = Mathf.Floor(avaliablePlacements[rand].y);
+                            place();
+                            avaliablePlacements.Clear();
+                        }
                     }
-                }
 
+
+                }
 
 
             }
@@ -173,7 +190,7 @@ public class Player : MonoBehaviour
 
     public void rotate()
     {
-        if (!tileInHand) return;
+        if (!tileInHand || !currTileVis) return;
         currTileVis.transform.Rotate(new Vector3(0, 90, 0), Space.World);
         tileInHand.transform.Rotate(new Vector3(0, 90, 0), Space.World);
         tileInHand.TileIsRotated = true;
@@ -183,8 +200,8 @@ public class Player : MonoBehaviour
         tileInHand.swapSides(tileInHand.cityConnections);
         tileInHand.swapSides(tileInHand.grassConnections);
         tileInHand.swapSides(tileInHand.roadConnections);
-
-
+        tileInHand.swapChildSides(tileInHand);
+      
         gridManager.avaliableGrids.Clear();
         gridManager.generateAvaliableSpots(tileInHand);
         GM.checkRiverTurn(tileInHand, lastPlacedTile);
@@ -207,6 +224,7 @@ public class Player : MonoBehaviour
         Destroy(currTileVis.gameObject);
         tileInstantiated = false;
         placedTile = true;
+        GM.currentPhase = GameManager.GamePhases.MeepPhase;
         lastPlacedTile = tileInHand;
         PlaceButton.interactable = false;
 

@@ -9,9 +9,18 @@ public class Tile : MonoBehaviour
     public Meep placedMeepleRoad;
     public Meep placedMeepleChapel;
     public Meep placedMeepleGrass;
-    
-    public List<Transform> PossibleMeepPos;
 
+    public List<Transform> PossibleMeepPos;
+    public GameObject TOP;
+
+    public GameObject RIGHT;
+    public GameObject DOWN;
+    public GameObject LEFT;
+
+    public Vector3 TopOrgPos;
+    public Vector3 RightOrgPos;
+    public Vector3 LeftOrgPos;
+    public Vector3 DownOrgPos;
     public int x;
     public int y;
     public bool placeable;
@@ -175,6 +184,40 @@ public class Tile : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void swapChildSides(Tile tileInHand)
+    {
+
+        foreach (Transform g in tileInHand.GetComponentsInChildren<Transform>())
+        {
+
+            if (g.childCount > 0)
+            {
+                continue;
+            }
+
+            if (g.name == "north") //is now on the right!
+            {
+                g.position = tileInHand.TopOrgPos;
+            }
+            if (g.name == "west") // //is now on the top!
+            {
+                g.position = tileInHand.LeftOrgPos;
+            }
+            if (g.name == "east") //is now down!
+            {
+                g.position = tileInHand.RightOrgPos;
+            }
+            if (g.name == "south") //is now left
+            {
+                g.position = tileInHand.DownOrgPos;
+            }
+
+
+
+        }
+
     }
 
 
