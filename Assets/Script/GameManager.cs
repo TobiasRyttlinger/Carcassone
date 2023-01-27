@@ -188,10 +188,6 @@ public class GameManager : MonoBehaviour
             if (!CurrPlayer.placedMeep && CurrPlayer.placedTile && CurrPlayer.meeples.Count > 0)
             {
 
-
-
-
-
                 Debug.Log("Meepphase");
                 foreach (Tile.directions side in CurrPlayer.lastPlacedTile.Sides)
                 {
@@ -295,6 +291,16 @@ public class GameManager : MonoBehaviour
         {
             CurrPlayer.lastPlacedTile.LEFT.SetActive(true);
         }
+    }
+
+    public void DeactivateMeeplePos(Tile inTile)
+    {
+        if(!inTile) return;
+        
+        inTile.TOP.SetActive(false);
+        inTile.RIGHT.SetActive(false);
+        inTile.DOWN.SetActive(false);
+        inTile.LEFT.SetActive(false);
     }
 
 

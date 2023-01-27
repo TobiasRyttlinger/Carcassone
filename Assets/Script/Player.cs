@@ -201,7 +201,7 @@ public class Player : MonoBehaviour
         tileInHand.swapSides(tileInHand.grassConnections);
         tileInHand.swapSides(tileInHand.roadConnections);
         tileInHand.swapChildSides(tileInHand);
-      
+
         gridManager.avaliableGrids.Clear();
         gridManager.generateAvaliableSpots(tileInHand);
         GM.checkRiverTurn(tileInHand, lastPlacedTile);
@@ -224,10 +224,11 @@ public class Player : MonoBehaviour
         Destroy(currTileVis.gameObject);
         tileInstantiated = false;
         placedTile = true;
-        GM.currentPhase = GameManager.GamePhases.MeepPhase;
+
+        GM.DeactivateMeeplePos(lastPlacedTile);
         lastPlacedTile = tileInHand;
         PlaceButton.interactable = false;
-
+        GM.currentPhase = GameManager.GamePhases.MeepPhase;
     }
 
     private bool IsPointerOverUIObject()
