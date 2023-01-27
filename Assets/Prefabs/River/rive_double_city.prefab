@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8329139125624602162}
+  - component: {fileID: 8786556028647901515}
   m_Layer: 0
   m_Name: north
   m_TagString: Untagged
@@ -31,6 +32,19 @@ Transform:
   m_Father: {fileID: 7511111167357789183}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &8786556028647901515
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 501298602717183190}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &669260687594135082
 GameObject:
   m_ObjectHideFlags: 0
@@ -176,12 +190,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84af92296d65a6849a346f204905884c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  placedMeepleCity: {fileID: 0}
+  placedMeepleRoad: {fileID: 0}
+  placedMeepleChapel: {fileID: 0}
+  placedMeepleGrass: {fileID: 0}
+  PossibleMeepPos: []
+  TOP: {fileID: 0}
+  RIGHT: {fileID: 0}
+  DOWN: {fileID: 0}
+  LEFT: {fileID: 0}
+  TopOrgPos: {x: 0, y: 0, z: 0}
+  RightOrgPos: {x: 0, y: 0, z: 0}
+  LeftOrgPos: {x: 0, y: 0, z: 0}
+  DownOrgPos: {x: 0, y: 0, z: 0}
   x: 0
   y: 0
   placeable: 0
   Shield: 0
   Chapel: 0
   Flowers: 0
+  Turn: 0
   TileIsRotated: 0
   numOfRotations: 0
   Inn: 0

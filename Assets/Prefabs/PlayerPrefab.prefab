@@ -853,6 +853,7 @@ MonoBehaviour:
   myCamera: {fileID: 3039001742718925155}
   UICamera: {fileID: 7170049760675923208}
   camerasys: {fileID: 8221380465474815684}
+  selectedMeeplePos: {fileID: 0}
   virtualCamera: {fileID: 3984352839798878631}
   meeples:
   - {fileID: 8939810319778544211}
@@ -866,6 +867,7 @@ MonoBehaviour:
   HasTile: 0
   tileInHand: {fileID: 0}
   currTileVis: {fileID: 1844918931789693232}
+  autoPlace: 1
   PlaceButton: {fileID: 2933411840071396520}
   RotateButton: {fileID: 1052330688835365003}
   renderTexture: {fileID: 8400000, guid: 923bbe00cc12d52459c33e687fe88876, type: 2}
@@ -875,6 +877,7 @@ MonoBehaviour:
   currentTileTex: {fileID: 0}
   tilesLeft: {fileID: 3851215759429892820}
   MeeplesLeft: {fileID: 6202266019483017963}
+  buttonText: {fileID: 5883836887029440232}
 --- !u!1 &5542842343888371168
 GameObject:
   m_ObjectHideFlags: 0
@@ -1180,7 +1183,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -63.3, y: -33.399994}
+  m_AnchoredPosition: {x: -693, y: -33.399994}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1431018048161938945

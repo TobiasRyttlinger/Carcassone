@@ -114,12 +114,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84af92296d65a6849a346f204905884c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  placedMeepleCity: {fileID: 0}
+  placedMeepleRoad: {fileID: 0}
+  placedMeepleChapel: {fileID: 0}
+  placedMeepleGrass: {fileID: 0}
+  PossibleMeepPos: []
+  TOP: {fileID: 0}
+  RIGHT: {fileID: 0}
+  DOWN: {fileID: 0}
+  LEFT: {fileID: 0}
+  TopOrgPos: {x: 0, y: 0, z: 0}
+  RightOrgPos: {x: 0, y: 0, z: 0}
+  LeftOrgPos: {x: 0, y: 0, z: 0}
+  DownOrgPos: {x: 0, y: 0, z: 0}
   x: 0
   y: 0
   placeable: 0
   Shield: 0
   Chapel: 0
   Flowers: 1
+  Turn: 0
   TileIsRotated: 0
   numOfRotations: 0
   Inn: 0
@@ -131,7 +145,7 @@ MonoBehaviour:
   - list: 01000000
   riverConnections: []
   roadConnections:
-  - list: 1000000002000000
+  - list: 
   grassConnections:
   - list: 000000000200000003000000
 --- !u!1 &2817323902472983185

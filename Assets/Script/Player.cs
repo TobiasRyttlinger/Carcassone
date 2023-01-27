@@ -15,6 +15,7 @@ public class Player : MonoBehaviour
     public Camera myCamera;
     public Camera UICamera;
     public GameObject camerasys;
+    public GameObject selectedMeeplePos;
 
     public CinemachineVirtualCamera virtualCamera;
     #endregion
@@ -47,6 +48,8 @@ public class Player : MonoBehaviour
     public Image currentTileTex;
     public TextMeshProUGUI tilesLeft;
     public TextMeshProUGUI MeeplesLeft;
+    public TextMeshProUGUI buttonText;
+
     #endregion
 
 
@@ -65,10 +68,24 @@ public class Player : MonoBehaviour
     {
         if (MyTurn)
         {
-            if (!gridManager.avaliableGrids.Contains(selectedPos))
+
+
+            if (GM.currentPhase == GameManager.GamePhases.TilePhase)
+            {
+                buttonText.text = "Place";
+            }
+            else if (GM.currentPhase == GameManager.GamePhases.MeepPhase)
+            {
+                buttonText.text = "Skip";
+                PlaceButton.interactable = true;
+            }
+            else
             {
                 PlaceButton.interactable = false;
+                buttonText.text = "Place";
             }
+
+
             //Make Mouse pick cell!
             if (Input.GetMouseButtonDown(0))
             {
@@ -80,7 +97,7 @@ public class Player : MonoBehaviour
                 {
                     pos = ray.GetPoint(distance);
                 }
-                if (!placedTile)
+                if (GM.currentPhase == GameManager.GamePhases.TilePhase)
                 {
                     if (pos.x > 0 && pos.z > 0 && gridManager.avaliableGrids.Contains(new Vector2(Mathf.Floor(pos.x), Mathf.Floor(pos.z))))
                     {
@@ -104,14 +121,39 @@ public class Player : MonoBehaviour
                         PlaceButton.interactable = true;
                     }
                 }
-                else if (placedTile)
+
+                else if (GM.currentPhase == GameManager.GamePhases.MeepPhase)
                 {
-                    RaycastHit hit;
-                    if (Physics.Raycast(ray, out hit))
+                    if (!gridManager.avaliableGrids.Contains(selectedPos))
                     {
-                        if (lastPlacedTile.transform.name == "MyObjectName") Debug.Log("My object is clicked by mouse");
-                        placedMeep = true;
+                        PlaceButton.interactable = false;
                     }
+
+                    if (meeples.Count < 1)
+                    {
+                        GM.currentPhase = GameManager.GamePhases.ScorePhase;
+                        GM.DeactivateMeeplePos(lastPlacedTile);
+
+                    }
+                    else
+                    {
+                        int LayerIgnoreRaycast = LayerMask.NameToLayer("Ignore Raycast");
+
+                        RaycastHit hit;
+                        if (Physics.Raycast(ray, out hit))
+                        {
+                            if (hit.transform.gameObject.layer != LayerIgnoreRaycast)
+                            {
+                                Debug.Log(hit.transform.name + " is clicked by mouse");
+                                selectedMeeplePos = hit.transform.gameObject;
+                                GM.placeMeep();
+
+                                GM.DeactivateMeeplePos(lastPlacedTile);
+                            }
+
+                        }
+                    }
+
                 }
 
             }
@@ -171,6 +213,7 @@ public class Player : MonoBehaviour
                     }
 
 
+
                 }
 
 
@@ -209,6 +252,12 @@ public class Player : MonoBehaviour
 
     public void place()
     {
+        if (GM.currentPhase == GameManager.GamePhases.MeepPhase)
+        {
+            GM.DeactivateMeeplePos(lastPlacedTile);
+            GM.currentPhase = GameManager.GamePhases.TilePhase;
+        }
+
         if ((selectedPos.x < 0 || selectedPos.y < 0) && !gridManager.avaliableGrids.Contains(selectedPos))
         {
             PlaceButton.interactable = false;
