@@ -16,6 +16,8 @@ public class Grid
         public Tile tile;
         public Tile.directions direction;
 
+        public Meep containsMeep = null;
+
         public override bool Equals(System.Object obj)
         {
             if (obj == null)
@@ -204,10 +206,10 @@ public class Grid
 
 
 
-    public List<connectionsList> find_City(Tile inTile, Tile.directions side)
+    public List<connectionsList> findConnections(Tile inTile, Tile.directions side, string Type)
     {
 
-        List<connectionsList> connected = find_connected_sides(inTile, side);
+        List<connectionsList> connected = find_connected_sides(inTile, side, Type);
         List<connectionsList> unexplored = find_adjacent_sides(connected);
         List<connectionsList> ignored = new List<connectionsList>();
 
@@ -226,7 +228,7 @@ public class Grid
             }
 
 
-            List<connectionsList> new_connected = find_connected_sides(tileToExplore.tile, tileToExplore.direction);
+            List<connectionsList> new_connected = find_connected_sides(tileToExplore.tile, tileToExplore.direction, Type);
 
             foreach (connectionsList conn in new_connected)
             {
@@ -257,11 +259,26 @@ public class Grid
     }
 
 
-    public List<connectionsList> find_connected_sides(Tile intile, Tile.directions side)
+    public List<connectionsList> find_connected_sides(Tile intile, Tile.directions side, string Type)
     {
         List<connectionsList> newConnections = new List<connectionsList>();
+        List<Tile.TileConnections> typeOfConnection;
 
-        foreach (Tile.TileConnections connectedtile in intile.cityConnections)
+        if (Type == "CITY")
+        {
+            typeOfConnection = intile.cityConnections;
+        }
+        else if (Type == "ROAD")
+        {
+            typeOfConnection = intile.roadConnections;
+        }
+        else
+        {
+            typeOfConnection = intile.grassConnections;
+
+        }
+
+        foreach (Tile.TileConnections connectedtile in typeOfConnection)
         {
             foreach (Tile.directions connectedside in connectedtile.list)
             {

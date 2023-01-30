@@ -203,13 +203,19 @@ public class GameManager : MonoBehaviour
                 Debug.Log("Meepphase");
                 foreach (Tile.directions side in CurrPlayer.lastPlacedTile.Sides)
                 {
-                    List<Grid.connectionsList> temp = playGrid.find_City(CurrPlayer.lastPlacedTile, side);
+                    List<Grid.connectionsList> foundCityConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "CITY");
+                    List<Grid.connectionsList> foundRoadConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "ROAD");
+                    List<Grid.connectionsList> foundGrassConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "GRASS");
 
                     CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
                     CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
                     CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
                     CurrPlayer.lastPlacedTile.LEFT.gameObject.active = false;
 
+                    foreach (Grid.connectionsList c in foundRoadConnections)
+                    {
+                        Debug.Log(System.DateTime.Now + ". " + c.direction);
+                    }
 
 
                     bool canPlaceMeepCity = true;
@@ -218,7 +224,7 @@ public class GameManager : MonoBehaviour
                     bool canPlaceMeepField = true;
                     int countr = 0;
                     //Loop through connections to check if any meeples exists in the chain
-                    foreach (Grid.connectionsList conn in temp)
+                    foreach (Grid.connectionsList conn in foundCityConnections)
                     {
                         //TileChain contains meep already! Cant place a new one
                         if (conn.tile.placedMeepleCity)
@@ -241,6 +247,31 @@ public class GameManager : MonoBehaviour
                         }
                     }
 
+                    foreach (Grid.connectionsList conn in foundRoadConnections)
+                    {
+                        //TileChain contains meep already! Cant place a new one
+                        if (conn.tile.placedMeepleRoad)
+                        {
+                            Debug.Log("Chain contains Meep!");
+                            DeactivateMeeplePos(CurrPlayer.tileInHand);
+                            currentPhase = GamePhases.ScorePhase;
+                            break;
+                        }
+
+
+                        foreach (Tile.TileConnections tc in CurrPlayer.tileInHand.roadConnections)
+                        {
+                            if (tc.list.Contains(conn.direction))
+                            {
+                                //Activate MeepPositions
+                                activateMeeplePostions(conn.direction);
+                                countr++;
+                            }
+                        }
+                    }
+
+
+
                     if (countr == 0)
                     {
                         currentPhase = GamePhases.ScorePhase;
@@ -260,7 +291,9 @@ public class GameManager : MonoBehaviour
                         em.enabled = true;
                     }
 
-                    temp.Clear();
+                    foundCityConnections.Clear();
+                    foundRoadConnections.Clear();
+                    foundGrassConnections.Clear();
                 }
 
                 CurrPlayer.placedTile = false;
