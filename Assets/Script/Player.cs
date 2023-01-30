@@ -132,7 +132,7 @@ public class Player : MonoBehaviour
                     if (meeples.Count < 1)
                     {
                         GM.currentPhase = GameManager.GamePhases.ScorePhase;
-                        GM.DeactivateMeeplePos(lastPlacedTile);
+                        GM.DeactivateMeeplePos(lastPlacedTile, Tile.directions.ALL);
 
                     }
                     else
@@ -148,7 +148,7 @@ public class Player : MonoBehaviour
                                 selectedMeeplePos = hit.transform.gameObject;
                                 GM.placeMeep();
 
-                                GM.DeactivateMeeplePos(lastPlacedTile);
+                                GM.DeactivateMeeplePos(lastPlacedTile, Tile.directions.ALL);
                             }
 
                         }
@@ -186,7 +186,7 @@ public class Player : MonoBehaviour
                 int failsafe = 0;
 
                 //Autoplace tiles
-                if (autoPlace)
+                if (autoPlace && tileInHand.river)
                 {
                     while (avaliablePlacements.Count < 1)
                     {
@@ -212,10 +212,7 @@ public class Player : MonoBehaviour
                         }
                     }
 
-
-
                 }
-
 
             }
             myCamera.enabled = true;
@@ -227,7 +224,6 @@ public class Player : MonoBehaviour
             myCamera.enabled = false;
             PlaceButton.gameObject.SetActive(false);
         }
-
 
     }
 
@@ -252,9 +248,14 @@ public class Player : MonoBehaviour
 
     public void place()
     {
+
+        //Skip is pressed
         if (GM.currentPhase == GameManager.GamePhases.MeepPhase)
         {
-            GM.DeactivateMeeplePos(lastPlacedTile);
+
+            GM.DeactivateMeeplePos(lastPlacedTile, Tile.directions.ALL);
+
+
             GM.currentPhase = GameManager.GamePhases.TilePhase;
         }
 
@@ -274,7 +275,7 @@ public class Player : MonoBehaviour
         tileInstantiated = false;
         placedTile = true;
 
-        GM.DeactivateMeeplePos(lastPlacedTile);
+        GM.DeactivateMeeplePos(lastPlacedTile, Tile.directions.ALL);
         lastPlacedTile = tileInHand;
         PlaceButton.interactable = false;
         GM.currentPhase = GameManager.GamePhases.MeepPhase;

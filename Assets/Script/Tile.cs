@@ -5,10 +5,10 @@ using UnityEngine;
 public class Tile : MonoBehaviour
 {
 
-    public Meep placedMeepleCity;
-    public Meep placedMeepleRoad;
+    public List<Meep> placedMeepsCities;
+    public List<Meep> placedMeepsRoads;
     public Meep placedMeepleChapel;
-    public Meep placedMeepleGrass;
+    public List<Meep> placedMeepsGrass;
 
     public List<Transform> PossibleMeepPos;
     public GameObject TOP;
@@ -70,7 +70,9 @@ public class Tile : MonoBehaviour
         DOWN_LEFT_DOWN,
         DOWN_RIGHT_RIGHT,
         DOWN_RIGHT_DOWN,
-        CENTER
+        CENTER,
+
+        ALL
     }
 
     [System.Serializable]
@@ -110,7 +112,7 @@ public class Tile : MonoBehaviour
     {
         this.x = x;
         this.y = y;
-        Debug.Log(x + ", " + y);
+       // Debug.Log(x + ", " + y);
         transform.position = new Vector3(x + 0.5f, 0, y + 0.5f);
 
     }

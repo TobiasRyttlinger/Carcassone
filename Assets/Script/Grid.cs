@@ -208,85 +208,72 @@ public class Grid
 
     public List<connectionsList> findConnections(Tile inTile, Tile.directions side, string Type)
     {
-
         List<connectionsList> connected = find_connected_sides(inTile, side, Type);
-        List<connectionsList> unexplored = find_adjacent_sides(connected);
-        List<connectionsList> ignored = new List<connectionsList>();
+        Stack<connectionsList> unexplored = new Stack<connectionsList>(find_adjacent_sides(connected));
 
         while (unexplored.Count != 0)
         {
-            Debug.Log(unexplored.Count);
-            connectionsList tileToExplore = unexplored[unexplored.Count - 1];
-            unexplored.RemoveAt(unexplored.Count - 1);
+            connectionsList tileToExplore = unexplored.Pop();
 
-            Tile new_tile = gridArr[tileToExplore.tile.x, tileToExplore.tile.y];
+            Tile new_tile = tileToExplore.tile;
 
             if (new_tile == null)
             {
-                ignored.Add(tileToExplore);
                 continue;
             }
 
+            List<connectionsList> new_connected = find_connected_sides(new_tile, tileToExplore.direction, Type);
 
-            List<connectionsList> new_connected = find_connected_sides(tileToExplore.tile, tileToExplore.direction, Type);
-
+            //Union
             foreach (connectionsList conn in new_connected)
             {
                 connectionsList newTile = conn;
+
                 if (!connected.Contains(newTile))
                 {
                     connected.Add(newTile);
+
                 }
+
             }
-            List<connectionsList> new_unexpored = find_adjacent_sides(new_connected);
-            foreach (connectionsList new_To_Explore in new_unexpored)
+
+            Stack<connectionsList> new_unexplored = new Stack<connectionsList>(find_adjacent_sides(new_connected));
+
+
+            foreach (connectionsList new_To_Explore in new_unexplored)
             {
-                if (!connected.Contains(new_To_Explore))
+                if (!(connected.Contains(new_To_Explore) || unexplored.Contains(new_To_Explore)))
                 {
-
-                    unexplored.Add(new_To_Explore);
+                    unexplored.Push(new_To_Explore);
                 }
 
+
             }
+
 
         }
-
-
-
+      //  Debug.Log("For " + Type + " " + side + ", " + connected.Count + " connected tiles");
         return connected;
-
-
     }
 
 
     public List<connectionsList> find_connected_sides(Tile intile, Tile.directions side, string Type)
     {
         List<connectionsList> newConnections = new List<connectionsList>();
-        List<Tile.TileConnections> typeOfConnection;
-
-        if (Type == "CITY")
-        {
-            typeOfConnection = intile.cityConnections;
-        }
-        else if (Type == "ROAD")
-        {
-            typeOfConnection = intile.roadConnections;
-        }
-        else
-        {
-            typeOfConnection = intile.grassConnections;
-
-        }
+        List<Tile.TileConnections> typeOfConnection =
+            Type == "CITY" ? intile.cityConnections :
+            Type == "ROAD" ? intile.roadConnections : intile.grassConnections;
 
         foreach (Tile.TileConnections connectedtile in typeOfConnection)
         {
-            foreach (Tile.directions connectedside in connectedtile.list)
+            //Failsafe in case side does not match type.
+            if (connectedtile.list.Contains(side))
             {
-
-                newConnections.Add(new connectionsList(intile, connectedside));
-
+                foreach (Tile.directions connectedside in connectedtile.list)
+                {
+                    newConnections.Add(new connectionsList(intile, connectedside));
+                }
             }
-
         }
 
         return newConnections;
@@ -295,30 +282,39 @@ public class Grid
     public List<connectionsList> find_adjacent_sides(List<connectionsList> connections)
     {
         List<connectionsList> adjacentTiles = new List<connectionsList>();
+
+
         foreach (connectionsList con in connections)
         {
             Tile.directions dir = con.direction;
             Tile inTile = con.tile;
+           // Debug.Log("Finding adjacent sides for " + inTile.name + " in direction " + dir);
             Tile.directions adjacent_direction = adjacent(dir);
+            int x = inTile.x, y = inTile.y;
+            if (x == 0 && y == 0)
+            {
+                x = y = 25;
+
+            }
             if (adjacent_direction == Tile.directions.DOWN)
             {
-                if (!tileIsOccupied(inTile.x, inTile.y + 1)) continue;
-                adjacentTiles.Add(new connectionsList(gridArr[inTile.x, inTile.y + 1], Tile.directions.DOWN));
+                if (!tileIsOccupied(x, y + 1)) continue;
+                adjacentTiles.Add(new connectionsList(gridArr[x, y + 1], Tile.directions.DOWN));
             }
             if (adjacent_direction == Tile.directions.TOP)
             {
-                if (!tileIsOccupied(inTile.x, inTile.y - 1)) continue;
-                adjacentTiles.Add(new connectionsList(gridArr[inTile.x, inTile.y - 1], Tile.directions.TOP));
+                if (!tileIsOccupied(x, y - 1)) continue;
+                adjacentTiles.Add(new connectionsList(gridArr[x, y - 1], Tile.directions.TOP));
             }
             if (adjacent_direction == Tile.directions.LEFT)
             {
-                if (!tileIsOccupied(inTile.x + 1, inTile.y)) continue;
-                adjacentTiles.Add(new connectionsList(gridArr[inTile.x + 1, inTile.y], Tile.directions.LEFT));
+                if (!tileIsOccupied(x + 1, y)) continue;
+                adjacentTiles.Add(new connectionsList(gridArr[x + 1, y], Tile.directions.LEFT));
             }
             if (adjacent_direction == Tile.directions.RIGHT)
             {
-                if (!tileIsOccupied(inTile.x - 1, inTile.y)) continue;
-                adjacentTiles.Add(new connectionsList(gridArr[inTile.x - 1, inTile.y], Tile.directions.RIGHT));
+                if (!tileIsOccupied(x - 1, y)) continue;
+                adjacentTiles.Add(new connectionsList(gridArr[x - 1, y], Tile.directions.RIGHT));
             }
 
         }
@@ -328,25 +324,17 @@ public class Grid
 
     public Tile.directions adjacent(Tile.directions side)
     {
-        if (side == Tile.directions.TOP)
+        switch (side)
         {
-            return Tile.directions.DOWN;
+            case Tile.directions.TOP:
+                return Tile.directions.DOWN;
+            case Tile.directions.DOWN:
+                return Tile.directions.TOP;
+            case Tile.directions.LEFT:
+                return Tile.directions.RIGHT;
+            default:
+                return Tile.directions.LEFT;
         }
-        else if (side == Tile.directions.DOWN)
-        {
-            return Tile.directions.TOP;
-        }
-        else if (side == Tile.directions.LEFT)
-        {
-            return Tile.directions.RIGHT;
-        }
-        else
-        {
-            return Tile.directions.LEFT;
-        }
-
-
     }
-
 
 }
