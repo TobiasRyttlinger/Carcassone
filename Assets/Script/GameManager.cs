@@ -175,7 +175,7 @@ public class GameManager : MonoBehaviour
         //TilePhase
         if (currentPhase == GamePhases.TilePhase)
         {
-         //  Debug.Log("TilePhase");
+            //  Debug.Log("TilePhase");
             CurrPlayer.PlaceButton.enabled = true;
             if (!CurrPlayer.placedTile)
             {
@@ -207,6 +207,8 @@ public class GameManager : MonoBehaviour
                 Debug.Log("Meepphase");
                 foreach (Tile.directions side in CurrPlayer.lastPlacedTile.Sides)
                 {
+                    bool disabledRoad = false;
+                    bool disabledCity = false;
                     //                    Debug.Log("Checking " + side + " of tileInHand.");
                     List<Grid.connectionsList> foundCityConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "CITY");
                     List<Grid.connectionsList> foundRoadConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "ROAD");
@@ -220,63 +222,65 @@ public class GameManager : MonoBehaviour
                     //Loop through connections to check if any meeples exists in the chain
                     foreach (Grid.connectionsList conn in foundCityConnections)
                     {
-
-                        foreach (Tile.TileConnections tc in CurrPlayer.tileInHand.cityConnections)
-                        {
-                            if (tc.list.Contains(conn.direction))
-                            {
-                                //Activate MeepPositions
-                                activateMeeplePostions(conn.direction);
-                                countr++;
-                            }
-                        }
-
                         foreach (Meep meep in conn.tile.placedMeepsCities)
                         {
                             Debug.Log("Chain contains Meep!");
-                            if (meep.placedPositionOnTile == conn.direction)
-                            {
-                                
-                                Debug.Log("Chain contains Meep! In " + conn.direction);
-                                DeactivateMeeplePos(CurrPlayer.tileInHand, Tile.directions.ALL);
+                            //  if (conn.direction == meep.placedPositionOnTile)
+                            // {
 
+                            Debug.Log(side + " Chain contains city Meep! In " + conn.direction);
+                            DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
+                            if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
+                            if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
+                            if (side == Tile.directions.RIGHT) CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
+                            if (side == Tile.directions.LEFT) CurrPlayer.lastPlacedTile.LEFT.gameObject.active = false;
+                            disabledCity = true;
+                            //  }
+                        }
+                        foreach (Tile.TileConnections tc in CurrPlayer.tileInHand.cityConnections)
+                        {
+                            if (tc.list.Contains(conn.direction) && !disabledCity)
+                            {
+                                //Activate MeepPositions
+                                activateMeeplePostions(side);
+                                countr++;
                             }
                         }
-
 
                     }
 
                     foreach (Grid.connectionsList conn in foundRoadConnections)
                     {
 
-                        foreach (Tile.TileConnections tc in CurrPlayer.tileInHand.roadConnections)
-                        {
-                            if (tc.list.Contains(conn.direction))
-                            {
-                                //Activate MeepPositions
-                                activateMeeplePostions(conn.direction);
-                                countr++;
-                            }
-                        }
                         //TileChain contains meep already! Cant place a new one
                         foreach (Meep meep in conn.tile.placedMeepsRoads)
                         {
                             Debug.Log("Found Meep in chain");
-                            if (meep.placedPositionOnTile == conn.direction)
-                            {
-                                Debug.Log("Chain contains Meep!");
-                                DeactivateMeeplePos(CurrPlayer.tileInHand, Tile.directions.ALL);
+                            //  if (meep.placedPositionOnTile == conn.direction)
+                            // {
+                            Debug.Log(side + " Chain contains road Meep! In " + conn.direction);
+                            // DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
 
+                            if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
+                            if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
+                            if (side == Tile.directions.RIGHT) CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
+                            if (side == Tile.directions.LEFT) CurrPlayer.lastPlacedTile.LEFT.gameObject.active = false;
+                            disabledRoad = true;
+                            //  break;
+                            // }
+                        }
+
+                        foreach (Tile.TileConnections tc in CurrPlayer.lastPlacedTile.roadConnections)
+                        {
+                            if (tc.list.Contains(conn.direction) && !disabledRoad)
+                            {
+                                //Activate MeepPositions
+                                activateMeeplePostions(side);
+                                countr++;
                             }
                         }
 
-
-
                     }
-
-
-
-
 
                     //Activate particle system
                     foreach (Transform g in CurrPlayer.lastPlacedTile.GetComponentsInChildren<Transform>())
@@ -292,14 +296,32 @@ public class GameManager : MonoBehaviour
                     }
 
                     foundCityConnections.Clear();
-                    //   foundRoadConnections.Clear();
+                    foundRoadConnections.Clear();
+
+
+
                     //  foundGrassConnections.Clear();
                 }
-                if (countr == 0)
+
+                bool doneDeal = false;
+                foreach (Transform g in CurrPlayer.lastPlacedTile.GetComponentsInChildren<Transform>())
+                {
+                    if (g.childCount > 0)
+                    {
+                        continue;
+                    }
+                    if (g.gameObject.active) continue;
+                    doneDeal = true;
+                }
+
+                if (countr == 0 || doneDeal)
                 {
                     currentPhase = GamePhases.ScorePhase;
-                    //   break;
+
                 }
+
+
+
                 CurrPlayer.placedTile = false;
 
                 //CurrPlayer.virtualCamera.m_LookAt = CurrPlayer.camerasys.transform;
@@ -441,11 +463,11 @@ public class GameManager : MonoBehaviour
             {
                 dir = Tile.directions.TOP;
             }
-            if (nameOfPos == "west")
+            if (nameOfPos == "east")
             {
                 dir = Tile.directions.RIGHT;
             }
-            if (nameOfPos == "east")
+            if (nameOfPos == "west")
             {
                 dir = Tile.directions.LEFT;
             }
@@ -476,12 +498,12 @@ public class GameManager : MonoBehaviour
 
             placeableMeep.transform.position = CurrPlayer.selectedMeeplePos.transform.position;
             placeableMeep.transform.Translate(new Vector3(0, 0.077f, 0), Space.Self);
-
+            placeableMeep.placedPositionOnTile = dir;
 
 
             CurrPlayer.meeples.RemoveAt(CurrPlayer.meeples.Count - 1);
             CurrPlayer.placedMeep = true;
-            CurrPlayer.tileInHand.placedMeepsCities.Add(placeableMeep);
+            // CurrPlayer.tileInHand.placedMeepsCities.Add(placeableMeep);
             currentPhase = GamePhases.ScorePhase;
 
         }

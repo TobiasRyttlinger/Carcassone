@@ -40,6 +40,8 @@ public class Player : MonoBehaviour
     private bool tileInstantiated = false;
     public bool placedTile = false;
     public bool placedMeep = false;
+
+    public Texture2D color;
     #endregion
 
 
@@ -60,6 +62,10 @@ public class Player : MonoBehaviour
         selectedPos.y = -1;
 
 
+        foreach (Meep m in meeples)
+        {
+            m.setMaterial(color);
+        }
         three_D = true;
     }
 

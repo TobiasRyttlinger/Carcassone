@@ -9,6 +9,7 @@ public class PlayerManager : MonoBehaviour
     private  AIPlayer[] aiPlayers;
     private int playerIndex = 0;
     private int playerMax;
+    
     // Start is called before the first frame update
     void Awake()
     {

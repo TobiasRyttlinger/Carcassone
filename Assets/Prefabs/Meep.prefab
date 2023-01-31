@@ -46,7 +46,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   owner: {fileID: 0}
+  placedPositionOnTile: 0
   teamColor: {r: 0, g: 0, b: 0, a: 0}
+  myRenderer: {fileID: 5912065253377940117}
 --- !u!1 &2672692775993357492
 GameObject:
   m_ObjectHideFlags: 0
@@ -108,7 +110,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -6478536213147159724, guid: 247aee7f994020e45979f7925d7a0496, type: 3}
+  - {fileID: 2100000, guid: 981cc76ea5a9ae5429e97b73dfa4b275, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

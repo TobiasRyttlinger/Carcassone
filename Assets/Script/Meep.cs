@@ -7,11 +7,16 @@ public class Meep : MonoBehaviour
     public Player owner;
 
     public Tile.directions placedPositionOnTile;
-    public Color teamColor;
+
+    public MeshRenderer myRenderer;
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
+
+    public void setMaterial(Texture2D inTex){
+        myRenderer.material.color = inTex.GetPixel(1,1);
+    }
 }
