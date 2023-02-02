@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
@@ -15,7 +16,7 @@ public class Grid
         }
         public Tile tile;
         public Tile.directions direction;
-
+        public bool finished = false;
         public Meep containsMeep = null;
 
         public override bool Equals(System.Object obj)
@@ -206,53 +207,71 @@ public class Grid
 
 
 
-    public List<connectionsList> findConnections(Tile inTile, Tile.directions side, string Type)
+    public List<connectionsList> findConnections(Tile inTile, Tile.directions side, string Type, GameManager.GamePhases inPhase)
     {
         List<connectionsList> connected = find_connected_sides(inTile, side, Type);
-        Stack<connectionsList> unexplored = new Stack<connectionsList>(find_adjacent_sides(connected));
+        Stack<connectionsList> open_Edges = new Stack<connectionsList>(find_adjacent_sides(connected));
+        List<connectionsList> explored = union(connected, open_Edges);
 
-        while (unexplored.Count != 0)
+        while (open_Edges.Count > 0)
         {
-            connectionsList tileToExplore = unexplored.Pop();
+            connectionsList tileToExplore = open_Edges.Pop();
 
-            Tile new_tile = tileToExplore.tile;
-
-            if (new_tile == null)
-            {
-                continue;
-            }
-
-            List<connectionsList> new_connected = find_connected_sides(new_tile, tileToExplore.direction, Type);
+            List<connectionsList> new_connected = find_connected_sides(tileToExplore.tile, tileToExplore.direction, Type);
 
             //Union
-            foreach (connectionsList conn in new_connected)
+            connected = union(connected, new_connected);
+
+            Stack<connectionsList> new_open_Edges = new Stack<connectionsList>(find_adjacent_sides(new_connected));
+
+            explored = union(explored, new_connected);
+            foreach (connectionsList new_To_Explore in new_open_Edges)
             {
-                connectionsList newTile = conn;
-
-                if (!connected.Contains(newTile))
+                if (!(explored.Contains(new_To_Explore)))
                 {
-                    connected.Add(newTile);
-
+                    open_Edges.Push(new_To_Explore);
+                    explored.Add(new_To_Explore);
                 }
-
             }
+        }
 
-            Stack<connectionsList> new_unexplored = new Stack<connectionsList>(find_adjacent_sides(new_connected));
+      //  Debug.Log("For " + Type + " " + side + ", " + connected.Count + " connected sides");
+      //  Debug.Log("For " + Type + " " + side + ", " + explored.Count + " explored sides");
 
-
-            foreach (connectionsList new_To_Explore in new_unexplored)
+        bool connectionsAreConnected = true;
+        if (inPhase == GameManager.GamePhases.ScorePhase)
+        {
+            foreach (Grid.connectionsList g in connected)
             {
-                if (!(connected.Contains(new_To_Explore) || unexplored.Contains(new_To_Explore)))
+                if (g.finished == false)
                 {
-                    unexplored.Push(new_To_Explore);
+                    connectionsAreConnected = false;
+                    break;
                 }
-
-
             }
-
+            if (connectionsAreConnected)
+            {
+                switch (inTile.getTerrainType(side).ToString())
+                {
+                    case "CITY":
+                        inTile.finishedCity = true;
+                        break;
+                    case "ROAD":
+                        inTile.finishedRoad = true;
+                        break;
+                    case "GRASS":
+                        inTile.finishedRoad = true;
+                        break;
+                    default:
+                        // code block
+                        break;
+                }
+                Debug.Log("intileFinished something");
+                inTile.finishedDirection.Add(side);
+            }
 
         }
-      //  Debug.Log("For " + Type + " " + side + ", " + connected.Count + " connected tiles");
+
         return connected;
     }
 
@@ -282,13 +301,13 @@ public class Grid
     public List<connectionsList> find_adjacent_sides(List<connectionsList> connections)
     {
         List<connectionsList> adjacentTiles = new List<connectionsList>();
-
+        bool finished = true;
 
         foreach (connectionsList con in connections)
         {
             Tile.directions dir = con.direction;
             Tile inTile = con.tile;
-           // Debug.Log("Finding adjacent sides for " + inTile.name + " in direction " + dir);
+            // Debug.Log("Finding adjacent sides for " + inTile.name + " in direction " + dir);
             Tile.directions adjacent_direction = adjacent(dir);
             int x = inTile.x, y = inTile.y;
             if (x == 0 && y == 0)
@@ -298,27 +317,51 @@ public class Grid
             }
             if (adjacent_direction == Tile.directions.DOWN)
             {
-                if (!tileIsOccupied(x, y + 1)) continue;
+                if (!tileIsOccupied(x, y + 1))
+                {
+                    finished = false;
+                    continue;
+                }
                 adjacentTiles.Add(new connectionsList(gridArr[x, y + 1], Tile.directions.DOWN));
+                con.finished = true;
             }
             if (adjacent_direction == Tile.directions.TOP)
             {
-                if (!tileIsOccupied(x, y - 1)) continue;
+                if (!tileIsOccupied(x, y - 1))
+                {
+                    finished = false;
+                    continue;
+                }
                 adjacentTiles.Add(new connectionsList(gridArr[x, y - 1], Tile.directions.TOP));
+                con.finished = true;
             }
             if (adjacent_direction == Tile.directions.LEFT)
             {
-                if (!tileIsOccupied(x + 1, y)) continue;
+                if (!tileIsOccupied(x + 1, y))
+                {
+                    finished = false;
+                    continue;
+                }
                 adjacentTiles.Add(new connectionsList(gridArr[x + 1, y], Tile.directions.LEFT));
+                con.finished = true;
             }
             if (adjacent_direction == Tile.directions.RIGHT)
             {
-                if (!tileIsOccupied(x - 1, y)) continue;
+                if (!tileIsOccupied(x - 1, y))
+                {
+                    finished = false;
+                    continue;
+                }
                 adjacentTiles.Add(new connectionsList(gridArr[x - 1, y], Tile.directions.RIGHT));
+                con.finished = true;
             }
 
         }
+        foreach (connectionsList connection in adjacentTiles)
+        {
+            connection.finished = finished;
 
+        }
         return adjacentTiles;
     }
 
@@ -335,6 +378,39 @@ public class Grid
             default:
                 return Tile.directions.LEFT;
         }
+    }
+
+
+    public List<connectionsList> union(List<connectionsList> a, List<connectionsList> b)
+    {
+        foreach (connectionsList conn in b)
+        {
+            connectionsList newTile = conn;
+
+            if (!a.Contains(newTile))
+            {
+                a.Add(newTile);
+
+            }
+
+        }
+        return a;
+    }
+
+    public List<connectionsList> union(List<connectionsList> a, Stack<connectionsList> b)
+    {
+        foreach (connectionsList conn in b)
+        {
+            connectionsList newTile = conn;
+
+            if (!a.Contains(newTile))
+            {
+                a.Add(newTile);
+
+            }
+
+        }
+        return a;
     }
 
 }

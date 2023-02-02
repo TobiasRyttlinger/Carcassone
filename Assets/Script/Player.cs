@@ -44,11 +44,11 @@ public class Player : MonoBehaviour
     public Texture2D color;
     #endregion
 
-
     //UI
     #region 
     public Image currentTileTex;
     public TextMeshProUGUI tilesLeft;
+    public TextMeshProUGUI scoreText;
     public TextMeshProUGUI MeeplesLeft;
     public TextMeshProUGUI buttonText;
 
@@ -148,6 +148,7 @@ public class Player : MonoBehaviour
                         RaycastHit hit;
                         if (Physics.Raycast(ray, out hit))
                         {
+
                             if (hit.transform.gameObject.layer != LayerIgnoreRaycast)
                             {
                                 Debug.Log(hit.transform.name + " is clicked by mouse");
@@ -262,7 +263,8 @@ public class Player : MonoBehaviour
             GM.DeactivateMeeplePos(lastPlacedTile, Tile.directions.ALL);
 
 
-            GM.currentPhase = GameManager.GamePhases.TilePhase;
+            GM.currentPhase = GameManager.GamePhases.ScorePhase;
+            return;
         }
 
         if ((selectedPos.x < 0 || selectedPos.y < 0) && !gridManager.avaliableGrids.Contains(selectedPos))
@@ -271,9 +273,9 @@ public class Player : MonoBehaviour
             return;
 
         }
-        MyTurn = false;
+        
         HasTile = false;
-        Debug.Log("placed tile:" + tileInHand.name + " at:" + this.selectedPos.x + ", " + this.selectedPos.y);
+        // Debug.Log("placed tile:" + tileInHand.name + " at:" + this.selectedPos.x + ", " + this.selectedPos.y);
 
         //Place tile in the correct cell
         gridManager.placeTile((int)this.selectedPos.x, (int)this.selectedPos.y, tileInHand);
@@ -296,7 +298,11 @@ public class Player : MonoBehaviour
         return results.Count > 0;
     }
 
-
+    public void addScore(int inScore)
+    {
+        this.score += inScore;
+        scoreText.text = "Score: " + this.score.ToString();
+    }
 
 
 }

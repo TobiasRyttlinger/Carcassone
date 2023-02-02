@@ -5,10 +5,10 @@ using UnityEngine;
 public class Tile : MonoBehaviour
 {
 
-    public List<Meep> placedMeepsCities;
-    public List<Meep> placedMeepsRoads;
+    public Meep placedMeepsCity;
+    public Meep placedMeepsRoad;
     public Meep placedMeepleChapel;
-    public List<Meep> placedMeepsGrass;
+    public Meep placedMeepsGrass;
 
     public List<Transform> PossibleMeepPos;
     public GameObject TOP;
@@ -16,7 +16,9 @@ public class Tile : MonoBehaviour
     public GameObject RIGHT;
     public GameObject DOWN;
     public GameObject LEFT;
-
+    public bool finishedCity = false;
+    public bool finishedRoad = false;
+    public List<directions> finishedDirection;
     public Vector3 TopOrgPos;
     public Vector3 RightOrgPos;
     public Vector3 LeftOrgPos;
@@ -93,7 +95,7 @@ public class Tile : MonoBehaviour
         y = 0;
         placeable = false;
         neighbours = new List<Tile>();
-
+        finishedDirection = new List<directions>();
         //Add sides
         Sides.Add(directions.TOP);
         Sides.Add(directions.DOWN);
@@ -112,7 +114,7 @@ public class Tile : MonoBehaviour
     {
         this.x = x;
         this.y = y;
-       // Debug.Log(x + ", " + y);
+        // Debug.Log(x + ", " + y);
         transform.position = new Vector3(x + 0.5f, 0, y + 0.5f);
 
     }
@@ -290,6 +292,118 @@ public class Tile : MonoBehaviour
 
     }
 
+    public void returnMeep(Player owningPlayer)
+    {
+        if (placedMeepsCity)
+        {
+            if (placedMeepsCity.owner == owningPlayer)
+            {
+                placedMeepsCity.transform.position = new Vector3(1000, 0, 0);
+                owningPlayer.meeples.Add(placedMeepsCity);
+                placedMeepsCity = null;
+            }
+        }
+        if (placedMeepsRoad)
+        {
+            if (placedMeepsRoad.owner == owningPlayer)
+            {
+                placedMeepsRoad.transform.position = new Vector3(1000, 0, 0);
+                owningPlayer.meeples.Add(placedMeepsRoad);
+                placedMeepsRoad = null;
+            }
+        }
+
+
+
+    }
+
+
+public void initialise(Tile t,Material PsMat){
+     GameObject objToSpawn = new GameObject("Center");
+            t.PossibleMeepPos.Add(objToSpawn.transform);
+            foreach (Transform g in t.GetComponentsInChildren<Transform>())
+            {
+                if (g.childCount > 0)
+                {
+                    int LayerIgnoreRaycast = LayerMask.NameToLayer("Ignore Raycast");
+                    g.gameObject.layer = LayerIgnoreRaycast;
+                    Destroy(g.gameObject.GetComponent<BoxCollider>());
+                    continue;
+                }
+                t.PossibleMeepPos.Add(g);
+                //Debug.Log(g.name);
+                if (!g.gameObject.GetComponent(typeof(ParticleSystem)))
+                {
+                    g.gameObject.AddComponent<ParticleSystem>();
+                }
+
+                ParticleSystem part = g.gameObject.GetComponent(typeof(ParticleSystem)) as ParticleSystem;
+
+                if (!g.gameObject.GetComponent(typeof(ParticleSystemRenderer)))
+                {
+                    g.gameObject.AddComponent<ParticleSystemRenderer>();
+                }
+                var pRenderer = g.gameObject.GetComponent(typeof(ParticleSystemRenderer)) as ParticleSystemRenderer;
+                pRenderer.material = PsMat;
+                //initialise selectionRings;
+                var main = part.main;
+                main.startColor = Color.yellow;
+                main.startSize = 0.02f;
+                main.startLifetime = 1.15f;
+                main.startSpeed = 0.0f;
+
+                var em = part.emission;
+                em.rateOverTime = 500f;
+
+                var sh = part.shape;
+                sh.shapeType = ParticleSystemShapeType.Circle;
+                sh.radius = 0.12f;
+                sh.arc = 360f;
+                sh.radiusThickness = 0.0f;
+                sh.arcMode = ParticleSystemShapeMultiModeValue.Loop;
+
+                em.enabled = false;
+                g.gameObject.SetActive(true);
+
+                g.gameObject.AddComponent<BoxCollider>();
+                var BC = g.gameObject.GetComponent(typeof(BoxCollider)) as BoxCollider;
+
+
+                BC.size = new Vector3(0.15f, 0.15f, 3.0f);
+                BC.center = Vector3.zero;
+
+
+                var tile = g.gameObject.GetComponentInParent(typeof(Tile)) as Tile;
+                if (g.name == "north") //TOP
+                {
+                    g.transform.Translate(new Vector3(-0.3f, 0.1f, 0), Space.Self);
+                    tile.TOP = g.gameObject;
+                    tile.TopOrgPos = g.position;
+                }
+                if (g.name == "west") // LEFT
+                {
+                    g.transform.Translate(new Vector3(0, 0.1f, -0.3f), Space.Self);
+                    tile.LEFT = g.gameObject;
+                    tile.LeftOrgPos = g.position;
+                }
+                if (g.name == "east") //RIGHT
+                {
+                    g.transform.Translate(new Vector3(0, 0.1f, 0.3f), Space.Self);
+                    tile.RIGHT = g.gameObject;
+                    tile.RightOrgPos = g.position;
+
+                }
+                if (g.name == "south") //DOWN
+                {
+                    g.transform.Translate(new Vector3(0.3f, 0.1f, 0), Space.Self);
+                    tile.DOWN = g.gameObject;
+                    tile.DownOrgPos = g.position;
+                }
+                g.transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
+
+
+            }
+}
 
 
 }

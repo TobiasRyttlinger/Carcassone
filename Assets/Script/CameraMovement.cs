@@ -27,19 +27,19 @@ public class CameraMovement : MonoBehaviour
         //zoomSpeed /= Vector3.Distance(transform.position, Camera.transform.position)*0.5f;
         Vector3 pos = Vector3.zero;
 
-        if (Input.GetKey("w") || Input.mousePosition.y >= Screen.height - panBorderThickness)
+        if (Input.GetKey("w"))//|| Input.mousePosition.y >= Screen.height - panBorderThickness)
         {
             pos.z -= 1f;
         }
-        if (Input.GetKey("s") || Input.mousePosition.y <= panBorderThickness)
+        if (Input.GetKey("s"))//|| Input.mousePosition.y <= panBorderThickness)
         {
             pos.z += 1f;
         }
-        if (Input.GetKey("a") || Input.mousePosition.x >= Screen.width - panBorderThickness)
+        if (Input.GetKey("d"))// || Input.mousePosition.x >= Screen.width - panBorderThickness)
         {
             pos.x -= 1f;
         }
-        if (Input.GetKey("d") || Input.mousePosition.x <= panBorderThickness)
+        if (Input.GetKey("a"))//|| Input.mousePosition.x <= panBorderThickness)
         {
             pos.x += 1f;
         }
@@ -55,7 +55,7 @@ public class CameraMovement : MonoBehaviour
     private void zoomFunc()
     {
         float scroll = Input.GetAxis("Mouse ScrollWheel");
-       
+
 
         if (Input.mouseScrollDelta.y > 0)
         {

@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -64,90 +65,7 @@ public class GameManager : MonoBehaviour
         //Fix Meeple spawn positions on each tile
         foreach (Tile t in Tiles)
         {
-            GameObject objToSpawn = new GameObject("Center");
-            t.PossibleMeepPos.Add(objToSpawn.transform);
-            foreach (Transform g in t.GetComponentsInChildren<Transform>())
-            {
-                if (g.childCount > 0)
-                {
-                    int LayerIgnoreRaycast = LayerMask.NameToLayer("Ignore Raycast");
-                    g.gameObject.layer = LayerIgnoreRaycast;
-                    Destroy(g.gameObject.GetComponent<BoxCollider>());
-                    continue;
-                }
-                t.PossibleMeepPos.Add(g);
-                //Debug.Log(g.name);
-                if (!g.gameObject.GetComponent(typeof(ParticleSystem)))
-                {
-                    g.gameObject.AddComponent<ParticleSystem>();
-                }
-
-                ParticleSystem part = g.gameObject.GetComponent(typeof(ParticleSystem)) as ParticleSystem;
-
-                if (!g.gameObject.GetComponent(typeof(ParticleSystemRenderer)))
-                {
-                    g.gameObject.AddComponent<ParticleSystemRenderer>();
-                }
-                var pRenderer = g.gameObject.GetComponent(typeof(ParticleSystemRenderer)) as ParticleSystemRenderer;
-                pRenderer.material = PsMat;
-                //initialise selectionRings;
-                var main = part.main;
-                main.startColor = Color.yellow;
-                main.startSize = 0.02f;
-                main.startLifetime = 1.15f;
-                main.startSpeed = 0.0f;
-
-                var em = part.emission;
-                em.rateOverTime = 500f;
-
-                var sh = part.shape;
-                sh.shapeType = ParticleSystemShapeType.Circle;
-                sh.radius = 0.12f;
-                sh.arc = 360f;
-                sh.radiusThickness = 0.0f;
-                sh.arcMode = ParticleSystemShapeMultiModeValue.Loop;
-
-                em.enabled = false;
-                g.gameObject.SetActive(true);
-
-                g.gameObject.AddComponent<BoxCollider>();
-                var BC = g.gameObject.GetComponent(typeof(BoxCollider)) as BoxCollider;
-
-
-                BC.size = new Vector3(0.15f, 0.15f, 3.0f);
-                BC.center = Vector3.zero;
-
-
-                var tile = g.gameObject.GetComponentInParent(typeof(Tile)) as Tile;
-                if (g.name == "north") //TOP
-                {
-                    g.transform.Translate(new Vector3(-0.3f, 0.1f, 0), Space.Self);
-                    tile.TOP = g.gameObject;
-                    tile.TopOrgPos = g.position;
-                }
-                if (g.name == "west") // LEFT
-                {
-                    g.transform.Translate(new Vector3(0, 0.1f, -0.3f), Space.Self);
-                    tile.LEFT = g.gameObject;
-                    tile.LeftOrgPos = g.position;
-                }
-                if (g.name == "east") //RIGHT
-                {
-                    g.transform.Translate(new Vector3(0, 0.1f, 0.3f), Space.Self);
-                    tile.RIGHT = g.gameObject;
-                    tile.RightOrgPos = g.position;
-
-                }
-                if (g.name == "south") //DOWN
-                {
-                    g.transform.Translate(new Vector3(0.3f, 0.1f, 0), Space.Self);
-                    tile.DOWN = g.gameObject;
-                    tile.DownOrgPos = g.position;
-                }
-                g.transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
-
-
-            }
+            t.initialise(t, PsMat);
 
         }
 
@@ -157,7 +75,7 @@ public class GameManager : MonoBehaviour
             playGrid.placeTile((int)playGrid.avaliableGrids[0].x, (int)playGrid.avaliableGrids[0].y, Tiles[0]);
 
             playGrid.generateAvaliableSpots(Tiles[0]);
-
+            DeactivateMeeplePos(Tiles[0], Tile.directions.ALL);
             Tiles.Remove(Tiles[0]);
         }
         currentPhase = GamePhases.TilePhase;
@@ -168,6 +86,7 @@ public class GameManager : MonoBehaviour
     [System.Obsolete]
     void Update()
     {
+        Debug.Log(currentPhase);
         CurrPlayer = playerManager.getCurrentPlayer();
         //Update UI Text
         updateUITexts();
@@ -200,6 +119,7 @@ public class GameManager : MonoBehaviour
         //MeepPhase
         else if (currentPhase == GamePhases.MeepPhase)
         {
+
             // CurrPlayer.PlaceButton.enabled = false;
             if (!CurrPlayer.placedMeep && CurrPlayer.placedTile)
             {
@@ -209,9 +129,18 @@ public class GameManager : MonoBehaviour
                 {
                     bool disabledRoad = false;
                     bool disabledCity = false;
-                    //                    Debug.Log("Checking " + side + " of tileInHand.");
-                    List<Grid.connectionsList> foundCityConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "CITY");
-                    List<Grid.connectionsList> foundRoadConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "ROAD");
+                    // Debug.Log("Checking " + side + " of placed tile.");
+                    List<Grid.connectionsList> foundCityConnections = new List<Grid.connectionsList>();
+                    List<Grid.connectionsList> foundRoadConnections = new List<Grid.connectionsList>();
+                    if (CurrPlayer.lastPlacedTile.getTerrainType(side) == Tile.terrainType.CITY)
+                    {
+                        foundCityConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "CITY", currentPhase);
+                    }
+                    if (CurrPlayer.lastPlacedTile.getTerrainType(side) == Tile.terrainType.ROAD)
+                    {
+                        foundRoadConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "ROAD", currentPhase);
+                    }
+
                     //  List<Grid.connectionsList> foundGrassConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "GRASS");
 
                     if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
@@ -222,13 +151,14 @@ public class GameManager : MonoBehaviour
                     //Loop through connections to check if any meeples exists in the chain
                     foreach (Grid.connectionsList conn in foundCityConnections)
                     {
-                        foreach (Meep meep in conn.tile.placedMeepsCities)
+                        //foreach (Meep meep in conn.tile.placedMeepsCities)
+                        if (conn.tile.placedMeepsCity)
                         {
-                            Debug.Log("Chain contains Meep!");
+                            //  Debug.Log("Chain contains Meep!");
                             //  if (conn.direction == meep.placedPositionOnTile)
                             // {
 
-                            Debug.Log(side + " Chain contains city Meep! In " + conn.direction);
+                            //Debug.Log(side + " Chain contains city Meep! In " + conn.direction);
                             DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
                             if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
                             if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
@@ -253,12 +183,13 @@ public class GameManager : MonoBehaviour
                     {
 
                         //TileChain contains meep already! Cant place a new one
-                        foreach (Meep meep in conn.tile.placedMeepsRoads)
+                        //foreach (Meep meep in conn.tile.placedMeepsRoads)
+                        if (conn.tile.placedMeepsRoad)
                         {
-                            Debug.Log("Found Meep in chain");
+                            //   Debug.Log("Found Meep in chain");
                             //  if (meep.placedPositionOnTile == conn.direction)
                             // {
-                            Debug.Log(side + " Chain contains road Meep! In " + conn.direction);
+                            // Debug.Log(side + " Chain contains road Meep! In " + conn.direction);
                             // DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
 
                             if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
@@ -295,10 +226,6 @@ public class GameManager : MonoBehaviour
                         em.enabled = true;
                     }
 
-                    foundCityConnections.Clear();
-                    foundRoadConnections.Clear();
-
-
 
                     //  foundGrassConnections.Clear();
                 }
@@ -310,8 +237,15 @@ public class GameManager : MonoBehaviour
                     {
                         continue;
                     }
-                    if (g.gameObject.active) continue;
-                    doneDeal = true;
+                    if (g.gameObject.active)
+                    {
+                        doneDeal = false;
+                    }
+                    else
+                    {
+                        doneDeal = true;
+                    }
+
                 }
 
                 if (countr == 0 || doneDeal)
@@ -324,7 +258,7 @@ public class GameManager : MonoBehaviour
 
                 CurrPlayer.placedTile = false;
 
-                //CurrPlayer.virtualCamera.m_LookAt = CurrPlayer.camerasys.transform;
+                CurrPlayer.virtualCamera.m_LookAt = CurrPlayer.camerasys.transform;
             }
 
         }
@@ -332,6 +266,110 @@ public class GameManager : MonoBehaviour
         else if (currentPhase == GamePhases.ScorePhase)
         {
             Debug.Log("ScorePhase");
+            List<Grid.connectionsList> foundCityConnections = new List<Grid.connectionsList>();
+
+            foreach (Tile.directions side in CurrPlayer.lastPlacedTile.Sides)
+            {
+                if (CurrPlayer.lastPlacedTile.getTerrainType(side) == Tile.terrainType.CITY)
+                {
+                    foundCityConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side,
+                    CurrPlayer.lastPlacedTile.getTerrainType(side).ToString(), currentPhase);
+                }
+
+            }
+            if (CurrPlayer.lastPlacedTile.finishedCity)
+            {
+                Debug.Log("FinishedCity");
+                int shieldCount = 0;
+                List<Meep> foundMeeples = new List<Meep>();
+                if (CurrPlayer.placedMeep)
+                {
+                    foundMeeples.Add(CurrPlayer.lastPlacedTile.placedMeepsCity);
+                }
+                foreach (Tile.directions side in CurrPlayer.lastPlacedTile.finishedDirection)
+                {
+                    //Loop through each tile.
+                    foreach (Grid.connectionsList currentConnection in foundCityConnections)
+                    {
+                        if (currentConnection.tile.placedMeepsCity)
+                        {
+                            foundMeeples.Add(currentConnection.tile.placedMeepsCity);
+                        }
+                        if (currentConnection.tile.Shield)
+                        {
+                            shieldCount++;
+                        }
+                    }
+                    if (foundMeeples.Count == 0)
+                    {
+                        Debug.Log("Cant find meeples! Breaking!");
+                        continue;
+                    }
+                    //Find out which player owns the city
+                    Player OwningPlayer = getOwningPlayer(foundMeeples);
+                    List<string> uniqueTiles = foundCityConnections.GroupBy(z => z.tile.name).Where(z => z.Count() == 1).Select(z => z.Key).ToList();
+
+                    int cityScore = (uniqueTiles.Count * 2) + (shieldCount * 2);
+
+                    OwningPlayer.addScore(cityScore);
+
+                    //return Meeps to players!
+                    foreach (Grid.connectionsList currentConnection in foundCityConnections)
+                    {
+                        foreach (Player p in playerManager.GetPlayers())
+                        {
+                            currentConnection.tile.returnMeep(p);
+                        }
+
+                    }
+
+                }
+
+
+
+                foundMeeples.Clear();
+            }
+            if (CurrPlayer.lastPlacedTile.finishedRoad)
+            {
+                Debug.Log("FinishedRoad");
+                int shieldCount = 0;
+                List<Meep> foundMeeples = new List<Meep>();
+                if (CurrPlayer.placedMeep)
+                {
+                    foundMeeples.Add(CurrPlayer.lastPlacedTile.placedMeepsRoad);
+                }
+                foreach (Tile.directions side in CurrPlayer.lastPlacedTile.finishedDirection)
+                {
+                    List<Grid.connectionsList> foundRoadConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side,
+                   CurrPlayer.lastPlacedTile.getTerrainType(side).ToString(), currentPhase);
+
+                    //Loop through each tile.
+                    foreach (Grid.connectionsList currentConnection in foundRoadConnections)
+                    {
+                        if (currentConnection.containsMeep)
+                        {
+                            foundMeeples.Add(currentConnection.containsMeep);
+                        }
+                        if (currentConnection.tile.Shield)
+                        {
+                            shieldCount++;
+                        }
+                    }
+                    if (foundMeeples.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    //Find out which player owns the city
+                    Player OwningPlayer = getOwningPlayer(foundMeeples);
+
+
+                    int roadScore = foundRoadConnections.Count;
+
+                    OwningPlayer.addScore(roadScore);
+                }
+            }
+            CurrPlayer.MyTurn = false;
             currentPhase = GamePhases.TilePhase;
         }
 
@@ -481,16 +519,16 @@ public class GameManager : MonoBehaviour
             switch (CurrPlayer.lastPlacedTile.getTerrainType(dir))
             {
                 case Tile.terrainType.CITY:
-                    CurrPlayer.lastPlacedTile.placedMeepsCities.Add(placeableMeep);
+                    CurrPlayer.lastPlacedTile.placedMeepsCity = (placeableMeep);
                     break;
                 case Tile.terrainType.ROAD:
-                    CurrPlayer.lastPlacedTile.placedMeepsRoads.Add(placeableMeep);
+                    CurrPlayer.lastPlacedTile.placedMeepsRoad = (placeableMeep);
                     break;
                 case Tile.terrainType.GRASS:
-                    CurrPlayer.lastPlacedTile.placedMeepsGrass.Add(placeableMeep);
+                    CurrPlayer.lastPlacedTile.placedMeepsGrass = (placeableMeep);
                     break;
                 default:
-                    CurrPlayer.lastPlacedTile.placedMeepsCities.Add(placeableMeep);
+                    CurrPlayer.lastPlacedTile.placedMeepsCity = (placeableMeep);
                     break;
             }
 
@@ -571,6 +609,52 @@ public class GameManager : MonoBehaviour
 
 
         }
+
+    }
+
+
+    public Player getOwningPlayer(List<Meep> listOMeeps)
+    {
+        Player[] playersInGame = playerManager.GetPlayers();
+        int[] playerMeepcCounts = new int[playersInGame.Length];
+
+        if (playersInGame.Length == 1)
+        {
+            return playerManager.getCurrentPlayer();
+        }
+
+        int id = 0;
+        foreach (Player p in playersInGame)
+        {
+            foreach (Meep m in listOMeeps)
+            {
+                if (m.owner == p)
+                {
+                    playerMeepcCounts[id]++;
+                }
+            }
+
+            id++;
+        }
+
+        id = 0;
+
+        int maxNumber = int.MinValue;
+        int maxIndex = -1;
+
+        for (int i = 0; i < playerMeepcCounts.Length; i++)
+        {
+            if (playerMeepcCounts[i] > maxNumber)
+            {
+                maxNumber = playerMeepcCounts[i];
+                maxIndex = i;
+            }
+        }
+
+        if (maxIndex < 0) return null;
+
+        return playersInGame[maxIndex];
+
 
     }
 
