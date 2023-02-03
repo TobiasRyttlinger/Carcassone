@@ -147,25 +147,21 @@ public class GameManager : MonoBehaviour
                     if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
                     if (side == Tile.directions.RIGHT) CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
                     if (side == Tile.directions.LEFT) CurrPlayer.lastPlacedTile.LEFT.gameObject.active = false;
-
+                    if (side == Tile.directions.CENTER) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
                     //Loop through connections to check if any meeples exists in the chain
                     foreach (Grid.connectionsList conn in foundCityConnections)
                     {
                         //foreach (Meep meep in conn.tile.placedMeepsCities)
                         if (conn.tile.placedMeepsCity)
                         {
-                            //  Debug.Log("Chain contains Meep!");
-                            //  if (conn.direction == meep.placedPositionOnTile)
-                            // {
 
-                            //Debug.Log(side + " Chain contains city Meep! In " + conn.direction);
                             DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
                             if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
                             if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
                             if (side == Tile.directions.RIGHT) CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
                             if (side == Tile.directions.LEFT) CurrPlayer.lastPlacedTile.LEFT.gameObject.active = false;
                             disabledCity = true;
-                            //  }
+
                         }
                         foreach (Tile.TileConnections tc in CurrPlayer.tileInHand.cityConnections)
                         {
@@ -211,6 +207,12 @@ public class GameManager : MonoBehaviour
                             }
                         }
 
+                    }
+
+                    if (CurrPlayer.lastPlacedTile.Chapel)
+                    {
+                        countr++;
+                        CurrPlayer.lastPlacedTile.CENTER.gameObject.active = true;
                     }
 
                     //Activate particle system
@@ -267,6 +269,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("ScorePhase");
             List<Grid.connectionsList> foundCityConnections = new List<Grid.connectionsList>();
+            List<Grid.connectionsList> foundRoadConnections = new List<Grid.connectionsList>();
 
             foreach (Tile.directions side in CurrPlayer.lastPlacedTile.Sides)
             {
@@ -275,8 +278,14 @@ public class GameManager : MonoBehaviour
                     foundCityConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side,
                     CurrPlayer.lastPlacedTile.getTerrainType(side).ToString(), currentPhase);
                 }
+                if (CurrPlayer.lastPlacedTile.getTerrainType(side) == Tile.terrainType.ROAD)
+                {
+                    foundRoadConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side,
+                    CurrPlayer.lastPlacedTile.getTerrainType(side).ToString(), currentPhase);
+                }
 
             }
+            #region //city
             if (CurrPlayer.lastPlacedTile.finishedCity)
             {
                 Debug.Log("FinishedCity");
@@ -288,14 +297,22 @@ public class GameManager : MonoBehaviour
                 }
                 foreach (Tile.directions side in CurrPlayer.lastPlacedTile.finishedDirection)
                 {
-                    //Loop through each tile.
-                    foreach (Grid.connectionsList currentConnection in foundCityConnections)
+                    List<Tile> uniqueTiles = foundCityConnections.GroupBy(z => z.tile).Select(z => z.Key).ToList();
+                    foreach (Tile t in uniqueTiles)
                     {
-                        if (currentConnection.tile.placedMeepsCity)
+                        Debug.Log(t.name);
+                    }
+
+                    Debug.Log(uniqueTiles.Count + "unique tiles make up this city!");
+                    Debug.Log("Checking " + side);
+                    //Loop through each tile.
+                    foreach (Tile t in uniqueTiles)
+                    {
+                        if (t.placedMeepsCity)
                         {
-                            foundMeeples.Add(currentConnection.tile.placedMeepsCity);
+                            foundMeeples.Add(t.placedMeepsCity);
                         }
-                        if (currentConnection.tile.Shield)
+                        if (t.Shield)
                         {
                             shieldCount++;
                         }
@@ -307,7 +324,7 @@ public class GameManager : MonoBehaviour
                     }
                     //Find out which player owns the city
                     Player OwningPlayer = getOwningPlayer(foundMeeples);
-                    List<string> uniqueTiles = foundCityConnections.GroupBy(z => z.tile.name).Where(z => z.Count() == 1).Select(z => z.Key).ToList();
+
 
                     int cityScore = (uniqueTiles.Count * 2) + (shieldCount * 2);
 
@@ -318,21 +335,20 @@ public class GameManager : MonoBehaviour
                     {
                         foreach (Player p in playerManager.GetPlayers())
                         {
-                            currentConnection.tile.returnMeep(p);
+                            currentConnection.tile.returnMeep(p, CurrPlayer.lastPlacedTile.getTerrainType(side));
                         }
 
                     }
 
                 }
-
-
-
                 foundMeeples.Clear();
             }
+            #endregion
+            #region  //road 
             if (CurrPlayer.lastPlacedTile.finishedRoad)
             {
                 Debug.Log("FinishedRoad");
-                int shieldCount = 0;
+
                 List<Meep> foundMeeples = new List<Meep>();
                 if (CurrPlayer.placedMeep)
                 {
@@ -340,37 +356,69 @@ public class GameManager : MonoBehaviour
                 }
                 foreach (Tile.directions side in CurrPlayer.lastPlacedTile.finishedDirection)
                 {
-                    List<Grid.connectionsList> foundRoadConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side,
-                   CurrPlayer.lastPlacedTile.getTerrainType(side).ToString(), currentPhase);
+                    List<Tile> uniqueTiles = foundRoadConnections.GroupBy(z => z.tile).Select(z => z.Key).ToList();
 
-                    //Loop through each tile.
-                    foreach (Grid.connectionsList currentConnection in foundRoadConnections)
+                    foreach (Tile t in uniqueTiles)
                     {
-                        if (currentConnection.containsMeep)
+                        if (t.placedMeepsRoad)
                         {
-                            foundMeeples.Add(currentConnection.containsMeep);
-                        }
-                        if (currentConnection.tile.Shield)
-                        {
-                            shieldCount++;
+                            foundMeeples.Add(t.placedMeepsRoad);
                         }
                     }
                     if (foundMeeples.Count == 0)
                     {
+                        Debug.Log("Cant find meeples! Breaking!");
                         continue;
                     }
-
-                    //Find out which player owns the city
+                    //Find out which player owns the Road
                     Player OwningPlayer = getOwningPlayer(foundMeeples);
-
-
-                    int roadScore = foundRoadConnections.Count;
+                    int roadScore = uniqueTiles.Count;
 
                     OwningPlayer.addScore(roadScore);
+
+                    //return Meeps to players!
+                    foreach (Grid.connectionsList currentConnection in foundRoadConnections)
+                    {
+                        foreach (Player p in playerManager.GetPlayers())
+                        {
+                            currentConnection.tile.returnMeep(p, CurrPlayer.lastPlacedTile.getTerrainType(side));
+                        }
+
+                    }
+                    foundMeeples.Clear();
                 }
+
             }
+            #endregion
+
+            #region //Chapel
+            List<Tile> connectedTiles = playGrid.checkForChapelCompletion(CurrPlayer.lastPlacedTile);
+            foreach (Tile t in connectedTiles)
+            {
+                List<Vector2> neighbourCoords = t.getNeighboursWithDiagonals(t.x, t.y);
+                bool completed = true;
+                foreach (Vector2 vec in neighbourCoords)
+                {
+                    if (playGrid.tileIsOccupied((int)vec.x, (int)vec.y))
+                    {
+                        continue;
+                    }
+                    completed = false;
+                }
+
+                if (completed)
+                {
+                    t.placedMeepleChapel.owner.addScore(9);
+                    t.returnMeep(t.placedMeepleChapel.owner, CurrPlayer.lastPlacedTile.getTerrainType(Tile.directions.CENTER));
+                }
+
+            }
+            #endregion
+
+
             CurrPlayer.MyTurn = false;
             currentPhase = GamePhases.TilePhase;
+            CurrPlayer.selectedMeeplePos = null;
         }
 
     }
@@ -406,6 +454,7 @@ public class GameManager : MonoBehaviour
             inTile.RIGHT.SetActive(false);
             inTile.LEFT.SetActive(false);
             inTile.DOWN.SetActive(false);
+            inTile.CENTER.SetActive(false);
             return;
         }
 
@@ -425,6 +474,11 @@ public class GameManager : MonoBehaviour
         {
             inTile.LEFT.SetActive(false);
         }
+        if (inDir == Tile.directions.CENTER)
+        {
+            inTile.CENTER.SetActive(false);
+        }
+
 
 
 
@@ -513,6 +567,10 @@ public class GameManager : MonoBehaviour
             {
                 dir = Tile.directions.DOWN;
             }
+             if (nameOfPos == "center")
+            {
+                dir = Tile.directions.CENTER;
+            }
             #endregion
 
 
@@ -528,7 +586,7 @@ public class GameManager : MonoBehaviour
                     CurrPlayer.lastPlacedTile.placedMeepsGrass = (placeableMeep);
                     break;
                 default:
-                    CurrPlayer.lastPlacedTile.placedMeepsCity = (placeableMeep);
+                    CurrPlayer.lastPlacedTile.placedMeepleChapel = (placeableMeep);
                     break;
             }
 

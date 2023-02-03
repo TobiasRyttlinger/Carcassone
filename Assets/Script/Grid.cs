@@ -235,8 +235,8 @@ public class Grid
             }
         }
 
-      //  Debug.Log("For " + Type + " " + side + ", " + connected.Count + " connected sides");
-      //  Debug.Log("For " + Type + " " + side + ", " + explored.Count + " explored sides");
+        //  Debug.Log("For " + Type + " " + side + ", " + connected.Count + " connected sides");
+        //  Debug.Log("For " + Type + " " + side + ", " + explored.Count + " explored sides");
 
         bool connectionsAreConnected = true;
         if (inPhase == GameManager.GamePhases.ScorePhase)
@@ -305,6 +305,11 @@ public class Grid
 
         foreach (connectionsList con in connections)
         {
+            if (con.direction == Tile.directions.CENTER)
+            {
+                con.finished = true;
+                continue;
+            }
             Tile.directions dir = con.direction;
             Tile inTile = con.tile;
             // Debug.Log("Finding adjacent sides for " + inTile.name + " in direction " + dir);
@@ -413,4 +418,28 @@ public class Grid
         return a;
     }
 
+
+
+    public List<Tile> checkForChapelCompletion(Tile placedTile)
+    {
+        List<Tile> completedChapels = new List<Tile>();
+        List<Vector2> allNeighbours = placedTile.getNeighboursWithDiagonals((int)placedTile.x, (int)placedTile.y);
+        allNeighbours.Add(new Vector2(placedTile.x,placedTile.y));
+        foreach (Vector2 cord in allNeighbours)
+        {
+            if (!tileIsOccupied((int)cord.x, (int)cord.y))
+            {
+                continue;
+            }
+            Tile testTile = gridArr[(int)cord.x, (int)cord.y];
+            if (testTile.Chapel && testTile.placedMeepleChapel)
+            {
+                List<Vector2> chapelNeighbours = testTile.getNeighboursWithDiagonals(testTile.x,testTile.y);
+                if(chapelNeighbours.Count == 8){
+                    completedChapels.Add(testTile);
+                }
+            }
+        }
+        return completedChapels;
+    }
 }

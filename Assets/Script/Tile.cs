@@ -16,6 +16,7 @@ public class Tile : MonoBehaviour
     public GameObject RIGHT;
     public GameObject DOWN;
     public GameObject LEFT;
+    public GameObject CENTER;
     public bool finishedCity = false;
     public bool finishedRoad = false;
     public List<directions> finishedDirection;
@@ -23,6 +24,7 @@ public class Tile : MonoBehaviour
     public Vector3 RightOrgPos;
     public Vector3 LeftOrgPos;
     public Vector3 DownOrgPos;
+    public Vector3 CenterOrgPos;
     public int x;
     public int y;
     public bool placeable;
@@ -101,6 +103,7 @@ public class Tile : MonoBehaviour
         Sides.Add(directions.DOWN);
         Sides.Add(directions.LEFT);
         Sides.Add(directions.RIGHT);
+        Sides.Add(directions.CENTER);
 
     }
 
@@ -217,6 +220,10 @@ public class Tile : MonoBehaviour
             {
                 g.position = tileInHand.DownOrgPos;
             }
+            if (g.name == "center") //is now center
+            {
+                g.position = tileInHand.CenterOrgPos;
+            }
 
 
 
@@ -292,9 +299,40 @@ public class Tile : MonoBehaviour
 
     }
 
-    public void returnMeep(Player owningPlayer)
+
+    public List<Vector2> getNeighboursWithDiagonals(int x, int y)
     {
-        if (placedMeepsCity)
+        List<Vector2> neighbourIndices = new List<Vector2>();
+
+        //Left
+        neighbourIndices.Add(new Vector2(x - 1, y));
+        //Right
+        neighbourIndices.Add(new Vector2(x + 1, y));
+        //Down
+        neighbourIndices.Add(new Vector2(x, y - 1));
+        //Top
+        neighbourIndices.Add(new Vector2(x, y + 1));
+
+        //Top Left
+        neighbourIndices.Add(new Vector2(x - 1, y + 1));
+
+        //Top right
+        neighbourIndices.Add(new Vector2(x + 1, y + 1));
+
+        //Down Left
+        neighbourIndices.Add(new Vector2(x - 1, y - 1));
+
+        //Down right
+        neighbourIndices.Add(new Vector2(x + 1, y - 1));
+
+
+        return neighbourIndices;
+
+    }
+
+    public void returnMeep(Player owningPlayer, Tile.terrainType tType)
+    {
+        if (placedMeepsCity && tType == Tile.terrainType.CITY)
         {
             if (placedMeepsCity.owner == owningPlayer)
             {
@@ -303,7 +341,7 @@ public class Tile : MonoBehaviour
                 placedMeepsCity = null;
             }
         }
-        if (placedMeepsRoad)
+        if (placedMeepsRoad && tType == Tile.terrainType.ROAD)
         {
             if (placedMeepsRoad.owner == owningPlayer)
             {
@@ -312,98 +350,117 @@ public class Tile : MonoBehaviour
                 placedMeepsRoad = null;
             }
         }
+        if (placedMeepleChapel && tType == Tile.terrainType.CHAPEL)
+        {
+            if (placedMeepleChapel.owner = owningPlayer)
+            {
+                placedMeepleChapel.transform.position = new Vector3(1000, 0, 0);
+                owningPlayer.meeples.Add(placedMeepleChapel);
+                placedMeepleChapel = null;
+            }
+        }
 
 
 
     }
 
 
-public void initialise(Tile t,Material PsMat){
-     GameObject objToSpawn = new GameObject("Center");
-            t.PossibleMeepPos.Add(objToSpawn.transform);
-            foreach (Transform g in t.GetComponentsInChildren<Transform>())
+    public void initialise(Tile t, Material PsMat)
+    {
+        GameObject objToSpawn = new GameObject("center");
+
+        objToSpawn.transform.parent = t.transform;
+        objToSpawn.transform.localScale = new Vector3(1, 1, 1);
+
+        foreach (Transform g in t.GetComponentsInChildren<Transform>())
+        {
+            if (g.childCount > 0)
             {
-                if (g.childCount > 0)
-                {
-                    int LayerIgnoreRaycast = LayerMask.NameToLayer("Ignore Raycast");
-                    g.gameObject.layer = LayerIgnoreRaycast;
-                    Destroy(g.gameObject.GetComponent<BoxCollider>());
-                    continue;
-                }
-                t.PossibleMeepPos.Add(g);
-                //Debug.Log(g.name);
-                if (!g.gameObject.GetComponent(typeof(ParticleSystem)))
-                {
-                    g.gameObject.AddComponent<ParticleSystem>();
-                }
+                int LayerIgnoreRaycast = LayerMask.NameToLayer("Ignore Raycast");
+                g.gameObject.layer = LayerIgnoreRaycast;
+                Destroy(g.gameObject.GetComponent<BoxCollider>());
+                continue;
+            }
+            t.PossibleMeepPos.Add(g);
+            //Debug.Log(g.name);
+            if (!g.gameObject.GetComponent(typeof(ParticleSystem)))
+            {
+                g.gameObject.AddComponent<ParticleSystem>();
+            }
 
-                ParticleSystem part = g.gameObject.GetComponent(typeof(ParticleSystem)) as ParticleSystem;
+            ParticleSystem part = g.gameObject.GetComponent(typeof(ParticleSystem)) as ParticleSystem;
 
-                if (!g.gameObject.GetComponent(typeof(ParticleSystemRenderer)))
-                {
-                    g.gameObject.AddComponent<ParticleSystemRenderer>();
-                }
-                var pRenderer = g.gameObject.GetComponent(typeof(ParticleSystemRenderer)) as ParticleSystemRenderer;
-                pRenderer.material = PsMat;
-                //initialise selectionRings;
-                var main = part.main;
-                main.startColor = Color.yellow;
-                main.startSize = 0.02f;
-                main.startLifetime = 1.15f;
-                main.startSpeed = 0.0f;
+            if (!g.gameObject.GetComponent(typeof(ParticleSystemRenderer)))
+            {
+                g.gameObject.AddComponent<ParticleSystemRenderer>();
+            }
+            var pRenderer = g.gameObject.GetComponent(typeof(ParticleSystemRenderer)) as ParticleSystemRenderer;
+            pRenderer.material = PsMat;
+            //initialise selectionRings;
+            var main = part.main;
+            main.startColor = Color.yellow;
+            main.startSize = 0.02f;
+            main.startLifetime = 1.15f;
+            main.startSpeed = 0.0f;
 
-                var em = part.emission;
-                em.rateOverTime = 500f;
+            var em = part.emission;
+            em.rateOverTime = 500f;
 
-                var sh = part.shape;
-                sh.shapeType = ParticleSystemShapeType.Circle;
-                sh.radius = 0.12f;
-                sh.arc = 360f;
-                sh.radiusThickness = 0.0f;
-                sh.arcMode = ParticleSystemShapeMultiModeValue.Loop;
+            var sh = part.shape;
+            sh.shapeType = ParticleSystemShapeType.Circle;
+            sh.radius = 0.12f;
+            sh.arc = 360f;
+            sh.radiusThickness = 0.0f;
+            sh.arcMode = ParticleSystemShapeMultiModeValue.Loop;
 
-                em.enabled = false;
-                g.gameObject.SetActive(true);
+            em.enabled = false;
+            g.gameObject.SetActive(true);
 
-                g.gameObject.AddComponent<BoxCollider>();
-                var BC = g.gameObject.GetComponent(typeof(BoxCollider)) as BoxCollider;
+            g.gameObject.AddComponent<BoxCollider>();
+            var BC = g.gameObject.GetComponent(typeof(BoxCollider)) as BoxCollider;
 
 
-                BC.size = new Vector3(0.15f, 0.15f, 3.0f);
-                BC.center = Vector3.zero;
+            BC.size = new Vector3(0.15f, 0.15f, 3.0f);
+            BC.center = Vector3.zero;
 
 
-                var tile = g.gameObject.GetComponentInParent(typeof(Tile)) as Tile;
-                if (g.name == "north") //TOP
-                {
-                    g.transform.Translate(new Vector3(-0.3f, 0.1f, 0), Space.Self);
-                    tile.TOP = g.gameObject;
-                    tile.TopOrgPos = g.position;
-                }
-                if (g.name == "west") // LEFT
-                {
-                    g.transform.Translate(new Vector3(0, 0.1f, -0.3f), Space.Self);
-                    tile.LEFT = g.gameObject;
-                    tile.LeftOrgPos = g.position;
-                }
-                if (g.name == "east") //RIGHT
-                {
-                    g.transform.Translate(new Vector3(0, 0.1f, 0.3f), Space.Self);
-                    tile.RIGHT = g.gameObject;
-                    tile.RightOrgPos = g.position;
-
-                }
-                if (g.name == "south") //DOWN
-                {
-                    g.transform.Translate(new Vector3(0.3f, 0.1f, 0), Space.Self);
-                    tile.DOWN = g.gameObject;
-                    tile.DownOrgPos = g.position;
-                }
-                g.transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
-
+            var tile = g.gameObject.GetComponentInParent(typeof(Tile)) as Tile;
+            if (g.name == "north") //TOP
+            {
+                g.transform.Translate(new Vector3(-0.3f, 0.1f, 0), Space.Self);
+                tile.TOP = g.gameObject;
+                tile.TopOrgPos = g.position;
+            }
+            if (g.name == "west") // LEFT
+            {
+                g.transform.Translate(new Vector3(0, 0.1f, -0.3f), Space.Self);
+                tile.LEFT = g.gameObject;
+                tile.LeftOrgPos = g.position;
+            }
+            if (g.name == "east") //RIGHT
+            {
+                g.transform.Translate(new Vector3(0, 0.1f, 0.3f), Space.Self);
+                tile.RIGHT = g.gameObject;
+                tile.RightOrgPos = g.position;
 
             }
-}
+            if (g.name == "south") //DOWN
+            {
+                g.transform.Translate(new Vector3(0.3f, 0.1f, 0), Space.Self);
+                tile.DOWN = g.gameObject;
+                tile.DownOrgPos = g.position;
+            }
+            if (g.name == "center")
+            {
+                g.transform.Translate(new Vector3(0, 0.1f, 0), Space.Self);
+                tile.CENTER = g.gameObject;
+                tile.CenterOrgPos = g.position;
+            }
+            g.transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
+
+
+        }
+    }
 
 
 }
