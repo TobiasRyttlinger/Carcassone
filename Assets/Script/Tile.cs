@@ -104,6 +104,12 @@ public class Tile : MonoBehaviour
         Sides.Add(directions.LEFT);
         Sides.Add(directions.RIGHT);
         Sides.Add(directions.CENTER);
+        //Grass connections
+        Sides.Add(directions.TOP_LEFT);
+        Sides.Add(directions.TOP_RIGHT);
+        Sides.Add(directions.DOWN_LEFT);
+        Sides.Add(directions.DOWN_RIGHT);
+        
 
     }
 
@@ -452,7 +458,7 @@ public class Tile : MonoBehaviour
             }
             if (g.name == "center")
             {
-                g.transform.Translate(new Vector3(0, 0.1f, 0), Space.Self);
+                g.transform.position = (tile.transform.position + new Vector3(0, 0.1f, 0));
                 tile.CENTER = g.gameObject;
                 tile.CenterOrgPos = g.position;
             }

@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
     [System.Obsolete]
     void Update()
     {
-        Debug.Log(currentPhase);
+        // Debug.Log(currentPhase);
         CurrPlayer = playerManager.getCurrentPlayer();
         //Update UI Text
         updateUITexts();
@@ -124,7 +124,7 @@ public class GameManager : MonoBehaviour
             if (!CurrPlayer.placedMeep && CurrPlayer.placedTile)
             {
                 int countr = 0;
-                Debug.Log("Meepphase");
+                // Debug.Log("Meepphase");
                 foreach (Tile.directions side in CurrPlayer.lastPlacedTile.Sides)
                 {
                     bool disabledRoad = false;
@@ -132,6 +132,7 @@ public class GameManager : MonoBehaviour
                     // Debug.Log("Checking " + side + " of placed tile.");
                     List<Grid.connectionsList> foundCityConnections = new List<Grid.connectionsList>();
                     List<Grid.connectionsList> foundRoadConnections = new List<Grid.connectionsList>();
+                    List<Grid.connectionsList> foundGrassConnections = new List<Grid.connectionsList>();
                     if (CurrPlayer.lastPlacedTile.getTerrainType(side) == Tile.terrainType.CITY)
                     {
                         foundCityConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "CITY", currentPhase);
@@ -140,14 +141,25 @@ public class GameManager : MonoBehaviour
                     {
                         foundRoadConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "ROAD", currentPhase);
                     }
+                    if (CurrPlayer.lastPlacedTile.getTerrainType(side) == Tile.terrainType.GRASS)
+                    {
+                        foundGrassConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "GRASS", currentPhase);
+                    }
+
 
                     //  List<Grid.connectionsList> foundGrassConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "GRASS");
-
+                    //General Meep positions
                     if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
                     if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
                     if (side == Tile.directions.RIGHT) CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
                     if (side == Tile.directions.LEFT) CurrPlayer.lastPlacedTile.LEFT.gameObject.active = false;
+                    
+                    //Specific for farmer placement
                     if (side == Tile.directions.CENTER) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
+                    if (side == Tile.directions.TOP_LEFT) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
+                    if (side == Tile.directions.TOP_RIGHT) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
+                    if (side == Tile.directions.DOWN_LEFT) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
+                    if (side == Tile.directions.DOWN_RIGHT) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
                     //Loop through connections to check if any meeples exists in the chain
                     foreach (Grid.connectionsList conn in foundCityConnections)
                     {
@@ -267,7 +279,7 @@ public class GameManager : MonoBehaviour
 
         else if (currentPhase == GamePhases.ScorePhase)
         {
-            Debug.Log("ScorePhase");
+            //Debug.Log("ScorePhase");
             List<Grid.connectionsList> foundCityConnections = new List<Grid.connectionsList>();
             List<Grid.connectionsList> foundRoadConnections = new List<Grid.connectionsList>();
 
@@ -567,7 +579,7 @@ public class GameManager : MonoBehaviour
             {
                 dir = Tile.directions.DOWN;
             }
-             if (nameOfPos == "center")
+            if (nameOfPos == "center")
             {
                 dir = Tile.directions.CENTER;
             }

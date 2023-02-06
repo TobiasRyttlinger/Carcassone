@@ -237,6 +237,9 @@ public class Player : MonoBehaviour
     public void rotate()
     {
         if (!tileInHand || !currTileVis) return;
+        selectedPos.x = -1;
+        selectedPos.y = -1;
+        PlaceButton.interactable = false;
         currTileVis.transform.Rotate(new Vector3(0, 90, 0), Space.World);
         tileInHand.transform.Rotate(new Vector3(0, 90, 0), Space.World);
         tileInHand.TileIsRotated = true;
@@ -266,6 +269,15 @@ public class Player : MonoBehaviour
             GM.currentPhase = GameManager.GamePhases.ScorePhase;
             return;
         }
+        //Skip is pressed
+        if (GM.currentPhase == GameManager.GamePhases.ScorePhase)
+        {
+
+            PlaceButton.interactable = false;
+
+            return;
+
+        }
 
         if ((selectedPos.x < 0 || selectedPos.y < 0) && !gridManager.avaliableGrids.Contains(selectedPos))
         {
@@ -273,7 +285,7 @@ public class Player : MonoBehaviour
             return;
 
         }
-        
+
         HasTile = false;
         // Debug.Log("placed tile:" + tileInHand.name + " at:" + this.selectedPos.x + ", " + this.selectedPos.y);
 
@@ -285,6 +297,8 @@ public class Player : MonoBehaviour
 
         GM.DeactivateMeeplePos(lastPlacedTile, Tile.directions.ALL);
         lastPlacedTile = tileInHand;
+        selectedPos.x = -1;
+        selectedPos.y = -1;
         PlaceButton.interactable = false;
         GM.currentPhase = GameManager.GamePhases.MeepPhase;
     }

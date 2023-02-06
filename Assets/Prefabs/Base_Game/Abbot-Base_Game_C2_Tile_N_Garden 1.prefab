@@ -176,12 +176,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84af92296d65a6849a346f204905884c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  placedMeepsCity: {fileID: 0}
+  placedMeepsRoad: {fileID: 0}
+  placedMeepleChapel: {fileID: 0}
+  placedMeepsGrass: {fileID: 0}
+  PossibleMeepPos: []
+  TOP: {fileID: 0}
+  RIGHT: {fileID: 0}
+  DOWN: {fileID: 0}
+  LEFT: {fileID: 0}
+  CENTER: {fileID: 0}
+  finishedCity: 0
+  finishedRoad: 0
+  finishedDirection: 
+  TopOrgPos: {x: 0, y: 0, z: 0}
+  RightOrgPos: {x: 0, y: 0, z: 0}
+  LeftOrgPos: {x: 0, y: 0, z: 0}
+  DownOrgPos: {x: 0, y: 0, z: 0}
+  CenterOrgPos: {x: 0, y: 0, z: 0}
   x: 0
   y: 0
   placeable: 0
   Shield: 0
-  Chapel: 1
-  Flowers: 0
+  Chapel: 0
+  Flowers: 1
+  Turn: 0
   TileIsRotated: 0
   numOfRotations: 0
   Inn: 0
