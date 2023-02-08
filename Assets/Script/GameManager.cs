@@ -129,6 +129,7 @@ public class GameManager : MonoBehaviour
                 {
                     bool disabledRoad = false;
                     bool disabledCity = false;
+                    bool disabledGrass = false;
                     // Debug.Log("Checking " + side + " of placed tile.");
                     List<Grid.connectionsList> foundCityConnections = new List<Grid.connectionsList>();
                     List<Grid.connectionsList> foundRoadConnections = new List<Grid.connectionsList>();
@@ -143,31 +144,28 @@ public class GameManager : MonoBehaviour
                     }
                     if (CurrPlayer.lastPlacedTile.getTerrainType(side) == Tile.terrainType.GRASS)
                     {
-                        foundGrassConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "GRASS", currentPhase);
+                        foundGrassConnections = playGrid.findGrassConnections(CurrPlayer.lastPlacedTile, side, "GRASS", currentPhase);
                     }
 
-
-                    //  List<Grid.connectionsList> foundGrassConnections = playGrid.findConnections(CurrPlayer.lastPlacedTile, side, "GRASS");
                     //General Meep positions
                     if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
                     if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
                     if (side == Tile.directions.RIGHT) CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
                     if (side == Tile.directions.LEFT) CurrPlayer.lastPlacedTile.LEFT.gameObject.active = false;
-                    
+
                     //Specific for farmer placement
-                    if (side == Tile.directions.CENTER) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
-                    if (side == Tile.directions.TOP_LEFT) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
-                    if (side == Tile.directions.TOP_RIGHT) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
-                    if (side == Tile.directions.DOWN_LEFT) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
-                    if (side == Tile.directions.DOWN_RIGHT) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
+                    if (side == Tile.directions.CENTER) CurrPlayer.lastPlacedTile.TL.gameObject.active = false;
+                    if (side == Tile.directions.TOP_LEFT_LEFT || side == Tile.directions.TOP_LEFT_TOP) CurrPlayer.lastPlacedTile.CENTER.gameObject.active = false;
+                    if (side == Tile.directions.DOWN_LEFT_LEFT || side == Tile.directions.DOWN_LEFT_DOWN) CurrPlayer.lastPlacedTile.DL.gameObject.active = false;
+                    if (side == Tile.directions.DOWN_RIGHT_DOWN || side == Tile.directions.DOWN_RIGHT_RIGHT) CurrPlayer.lastPlacedTile.DR.gameObject.active = false;
+                    if (side == Tile.directions.TOP_RIGHT_RIGHT || side == Tile.directions.TOP_RIGHT_TOP) CurrPlayer.lastPlacedTile.TR.gameObject.active = false;
                     //Loop through connections to check if any meeples exists in the chain
                     foreach (Grid.connectionsList conn in foundCityConnections)
                     {
                         //foreach (Meep meep in conn.tile.placedMeepsCities)
                         if (conn.tile.placedMeepsCity)
                         {
-
-                            DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
+                            // DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
                             if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
                             if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
                             if (side == Tile.directions.RIGHT) CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
@@ -198,7 +196,7 @@ public class GameManager : MonoBehaviour
                             //  if (meep.placedPositionOnTile == conn.direction)
                             // {
                             // Debug.Log(side + " Chain contains road Meep! In " + conn.direction);
-                            // DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
+                            //  DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
 
                             if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
                             if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
@@ -220,7 +218,76 @@ public class GameManager : MonoBehaviour
                         }
 
                     }
+                    //Grass 
+                    foreach (Grid.connectionsList conn in foundGrassConnections)
+                    {
+                        //foreach (Meep meep in conn.tile.placedMeepsCities)
+                        if (conn.tile.placedMeepsGrass)
+                        {
+                            bool falseMeep = true;
+                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.DOWN_RIGHT)
+                            {
+                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.DOWN_RIGHT_RIGHT)) || foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.DOWN_RIGHT_DOWN)))
+                                {
+                                    falseMeep = false;
+                                }
+                            }
+                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.TOP_RIGHT)
+                            {
+                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.TOP_RIGHT_RIGHT)) || foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.TOP_RIGHT_TOP)))
+                                {
+                                    falseMeep = false;
+                                }
+                            }
 
+                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.TOP_LEFT)
+                            {
+                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.TOP_LEFT_LEFT)) || foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.TOP_LEFT_TOP)))
+                                {
+                                    falseMeep = false;
+                                }
+                            }
+
+                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.DOWN_LEFT)
+                            {
+                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.DOWN_LEFT_DOWN)) || foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.DOWN_LEFT_LEFT)))
+                                {
+                                    falseMeep = false;
+                                }
+                            }
+
+
+                            if (!falseMeep)
+                            {
+                                Debug.Log("Meep contained in conneciton");
+                                // DeactivateMeeplePos(CurrPlayer.lastPlacedTile, Tile.directions.ALL);
+                                if (side == Tile.directions.CENTER) CurrPlayer.lastPlacedTile.TL.gameObject.active = false;
+                                if (side == Tile.directions.TOP) CurrPlayer.lastPlacedTile.TOP.gameObject.active = false;
+                                if (side == Tile.directions.DOWN) CurrPlayer.lastPlacedTile.DOWN.gameObject.active = false;
+                                if (side == Tile.directions.RIGHT) CurrPlayer.lastPlacedTile.RIGHT.gameObject.active = false;
+                                if (side == Tile.directions.LEFT) CurrPlayer.lastPlacedTile.LEFT.gameObject.active = false;
+                                if (side == Tile.directions.TOP_LEFT_LEFT || side == Tile.directions.TOP_LEFT_TOP) CurrPlayer.lastPlacedTile.TL.gameObject.active = false;
+                                if (side == Tile.directions.DOWN_LEFT_LEFT || side == Tile.directions.DOWN_LEFT_DOWN) CurrPlayer.lastPlacedTile.DL.gameObject.active = false;
+                                if (side == Tile.directions.DOWN_RIGHT_DOWN || side == Tile.directions.DOWN_RIGHT_RIGHT) CurrPlayer.lastPlacedTile.DR.gameObject.active = false;
+                                if (side == Tile.directions.TOP_RIGHT_RIGHT || side == Tile.directions.TOP_RIGHT_TOP) CurrPlayer.lastPlacedTile.TR.gameObject.active = false;
+                                disabledGrass = true;
+                            }
+                            else
+                            {
+                                Debug.Log("Meep is in another field");
+                            }
+                        }
+                        foreach (Tile.TileConnections tc in CurrPlayer.tileInHand.grassConnections)
+                        {
+                            if (tc.list.Contains(conn.direction) && !disabledGrass)
+                            {
+                                //Activate MeepPositions
+                                activateMeeplePostions(side);
+                                countr++;
+                            }
+                        }
+
+                    }
                     if (CurrPlayer.lastPlacedTile.Chapel)
                     {
                         countr++;
@@ -241,7 +308,9 @@ public class GameManager : MonoBehaviour
                     }
 
 
-                    //  foundGrassConnections.Clear();
+
+
+
                 }
 
                 bool doneDeal = false;
@@ -257,6 +326,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
+                        countr = 0;
                         doneDeal = true;
                     }
 
@@ -315,8 +385,8 @@ public class GameManager : MonoBehaviour
                         Debug.Log(t.name);
                     }
 
-                    Debug.Log(uniqueTiles.Count + "unique tiles make up this city!");
-                    Debug.Log("Checking " + side);
+
+
                     //Loop through each tile.
                     foreach (Tile t in uniqueTiles)
                     {
@@ -341,7 +411,8 @@ public class GameManager : MonoBehaviour
                     int cityScore = (uniqueTiles.Count * 2) + (shieldCount * 2);
 
                     OwningPlayer.addScore(cityScore);
-
+                    Debug.Log(uniqueTiles.Count + " unique tiles make up this city, and it gives"
+                     + OwningPlayer.name + " and it is worth: " + cityScore);
                     //return Meeps to players!
                     foreach (Grid.connectionsList currentConnection in foundCityConnections)
                     {
@@ -356,6 +427,7 @@ public class GameManager : MonoBehaviour
                 foundMeeples.Clear();
             }
             #endregion
+
             #region  //road 
             if (CurrPlayer.lastPlacedTile.finishedRoad)
             {
@@ -379,7 +451,7 @@ public class GameManager : MonoBehaviour
                     }
                     if (foundMeeples.Count == 0)
                     {
-                        Debug.Log("Cant find meeples! Breaking!");
+                        // Debug.Log("Cant find meeples! Breaking!");
                         continue;
                     }
                     //Find out which player owns the Road
@@ -421,7 +493,7 @@ public class GameManager : MonoBehaviour
                 if (completed)
                 {
                     t.placedMeepleChapel.owner.addScore(9);
-                    t.returnMeep(t.placedMeepleChapel.owner, CurrPlayer.lastPlacedTile.getTerrainType(Tile.directions.CENTER));
+                    t.returnMeep(t.placedMeepleChapel.owner, t.getTerrainType(Tile.directions.CENTER));
                 }
 
             }
@@ -454,6 +526,26 @@ public class GameManager : MonoBehaviour
         {
             CurrPlayer.lastPlacedTile.LEFT.SetActive(true);
         }
+        if (inDir == Tile.directions.TOP_RIGHT_TOP || inDir == Tile.directions.TOP_RIGHT_RIGHT)
+        {
+            CurrPlayer.lastPlacedTile.TR.SetActive(true);
+        }
+        if (inDir == Tile.directions.TOP_LEFT_LEFT || inDir == Tile.directions.TOP_LEFT_TOP)
+        {
+            CurrPlayer.lastPlacedTile.TL.SetActive(true);
+        }
+        if (inDir == Tile.directions.DOWN_LEFT_DOWN || inDir == Tile.directions.DOWN_LEFT_LEFT)
+        {
+            CurrPlayer.lastPlacedTile.DL.SetActive(true);
+        }
+        if (inDir == Tile.directions.DOWN_RIGHT_DOWN || inDir == Tile.directions.DOWN_RIGHT_RIGHT)
+        {
+            CurrPlayer.lastPlacedTile.DR.SetActive(true);
+        }
+        if (inDir == Tile.directions.CENTER)
+        {
+            CurrPlayer.lastPlacedTile.CENTER.SetActive(true);
+        }
     }
 
     public void DeactivateMeeplePos(Tile inTile, Tile.directions inDir)
@@ -467,6 +559,11 @@ public class GameManager : MonoBehaviour
             inTile.LEFT.SetActive(false);
             inTile.DOWN.SetActive(false);
             inTile.CENTER.SetActive(false);
+            inTile.TL.SetActive(false);
+            inTile.TR.SetActive(false);
+            inTile.DL.SetActive(false);
+            inTile.DR.SetActive(false);
+
             return;
         }
 
@@ -583,6 +680,22 @@ public class GameManager : MonoBehaviour
             {
                 dir = Tile.directions.CENTER;
             }
+            if (nameOfPos == "TL")
+            {
+                dir = Tile.directions.TOP_LEFT;
+            }
+            if (nameOfPos == "TR")
+            {
+                dir = Tile.directions.TOP_RIGHT;
+            }
+            if (nameOfPos == "DL")
+            {
+                dir = Tile.directions.DOWN_LEFT;
+            }
+            if (nameOfPos == "DR")
+            {
+                dir = Tile.directions.DOWN_RIGHT;
+            }
             #endregion
 
 
@@ -594,11 +707,11 @@ public class GameManager : MonoBehaviour
                 case Tile.terrainType.ROAD:
                     CurrPlayer.lastPlacedTile.placedMeepsRoad = (placeableMeep);
                     break;
-                case Tile.terrainType.GRASS:
-                    CurrPlayer.lastPlacedTile.placedMeepsGrass = (placeableMeep);
+                case Tile.terrainType.CHAPEL:
+                    CurrPlayer.lastPlacedTile.placedMeepleChapel = (placeableMeep);
                     break;
                 default:
-                    CurrPlayer.lastPlacedTile.placedMeepleChapel = (placeableMeep);
+                    CurrPlayer.lastPlacedTile.placedMeepsGrass = (placeableMeep);
                     break;
             }
 

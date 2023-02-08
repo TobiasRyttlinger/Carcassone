@@ -17,6 +17,10 @@ public class Tile : MonoBehaviour
     public GameObject DOWN;
     public GameObject LEFT;
     public GameObject CENTER;
+    public GameObject TR;
+    public GameObject TL;
+    public GameObject DL;
+    public GameObject DR;
     public bool finishedCity = false;
     public bool finishedRoad = false;
     public List<directions> finishedDirection;
@@ -25,6 +29,11 @@ public class Tile : MonoBehaviour
     public Vector3 LeftOrgPos;
     public Vector3 DownOrgPos;
     public Vector3 CenterOrgPos;
+
+    public Vector3 TLOrgPos;
+    public Vector3 TROrgPos;
+    public Vector3 DLOrgPos;
+    public Vector3 DROrgPos;
     public int x;
     public int y;
     public bool placeable;
@@ -105,11 +114,15 @@ public class Tile : MonoBehaviour
         Sides.Add(directions.RIGHT);
         Sides.Add(directions.CENTER);
         //Grass connections
-        Sides.Add(directions.TOP_LEFT);
-        Sides.Add(directions.TOP_RIGHT);
-        Sides.Add(directions.DOWN_LEFT);
-        Sides.Add(directions.DOWN_RIGHT);
-        
+        Sides.Add(directions.TOP_LEFT_LEFT);
+        Sides.Add(directions.TOP_LEFT_TOP);
+        Sides.Add(directions.TOP_RIGHT_RIGHT);
+        Sides.Add(directions.TOP_RIGHT_TOP);
+        Sides.Add(directions.DOWN_RIGHT_RIGHT);
+        Sides.Add(directions.DOWN_RIGHT_DOWN);
+        Sides.Add(directions.DOWN_LEFT_DOWN);
+        Sides.Add(directions.DOWN_LEFT_LEFT);
+
 
     }
 
@@ -229,6 +242,25 @@ public class Tile : MonoBehaviour
             if (g.name == "center") //is now center
             {
                 g.position = tileInHand.CenterOrgPos;
+            }
+
+            //GrassStuff
+
+            if (g.name == "TL")
+            {
+                g.position = tileInHand.TLOrgPos;
+            }
+            if (g.name == "TR")
+            {
+                g.position = tileInHand.TROrgPos;
+            }
+            if (g.name == "DL")
+            {
+                g.position = tileInHand.DLOrgPos;
+            }
+            if (g.name == "DR")
+            {
+                g.position = tileInHand.DROrgPos;
             }
 
 
@@ -373,10 +405,15 @@ public class Tile : MonoBehaviour
 
     public void initialise(Tile t, Material PsMat)
     {
-        GameObject objToSpawn = new GameObject("center");
+        List<GameObject> objToSpawn = new List<GameObject> { new GameObject("center"), new GameObject("TR"), new GameObject("DR"), new GameObject("TL"), new GameObject("DL") };
 
-        objToSpawn.transform.parent = t.transform;
-        objToSpawn.transform.localScale = new Vector3(1, 1, 1);
+        foreach (GameObject g in objToSpawn)
+        {
+            g.transform.parent = t.transform;
+            g.transform.localScale = new Vector3(1, 1, 1);
+        }
+
+
 
         foreach (Transform g in t.GetComponentsInChildren<Transform>())
         {
@@ -388,7 +425,7 @@ public class Tile : MonoBehaviour
                 continue;
             }
             t.PossibleMeepPos.Add(g);
-            //Debug.Log(g.name);
+
             if (!g.gameObject.GetComponent(typeof(ParticleSystem)))
             {
                 g.gameObject.AddComponent<ParticleSystem>();
@@ -404,7 +441,15 @@ public class Tile : MonoBehaviour
             pRenderer.material = PsMat;
             //initialise selectionRings;
             var main = part.main;
-            main.startColor = Color.yellow;
+            if (g.gameObject.name.Length < 4)
+            {
+                main.startColor = Color.green;
+            }
+            else
+            {
+                main.startColor = Color.yellow;
+            }
+
             main.startSize = 0.02f;
             main.startLifetime = 1.15f;
             main.startSpeed = 0.0f;
@@ -461,6 +506,30 @@ public class Tile : MonoBehaviour
                 g.transform.position = (tile.transform.position + new Vector3(0, 0.1f, 0));
                 tile.CENTER = g.gameObject;
                 tile.CenterOrgPos = g.position;
+            }
+            if (g.name == "DL")
+            {
+                g.transform.position = (tile.transform.position + new Vector3(-0.3f, 0.1f, -0.3f));
+                tile.DL = g.gameObject;
+                tile.DLOrgPos = g.position;
+            }
+            if (g.name == "TL")// TR
+            {
+                g.transform.position = (tile.transform.position + new Vector3(-0.3f, 0.1f, 0.3f));
+                tile.TL = g.gameObject;
+                tile.TLOrgPos = g.position;
+            }
+            if (g.name == "DR")
+            {
+                g.transform.position = (tile.transform.position + new Vector3(0.3f, 0.1f, -0.3f));
+                tile.DR = g.gameObject;
+                tile.DROrgPos = g.position;
+            }
+            if (g.name == "TR")//DR
+            {
+                g.transform.position = (tile.transform.position + new Vector3(0.3f, 0.1f, 0.3f));
+                tile.TR = g.gameObject;
+                tile.TROrgPos = g.position;
             }
             g.transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
 

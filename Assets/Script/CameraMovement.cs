@@ -16,12 +16,14 @@ public class CameraMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+     
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        Camera.transform.rotation = Quaternion.Euler(new Vector3(90,0,0));
         panSpeed = -Vector3.Distance(transform.position, Camera.transform.position) / ((maxZoom - cameraFOV + 15) * 0.01f);
         //  Debug.Log("cameraFOV: " + cameraFOV);
         //zoomSpeed /= Vector3.Distance(transform.position, Camera.transform.position)*0.5f;

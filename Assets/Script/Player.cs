@@ -16,7 +16,7 @@ public class Player : MonoBehaviour
     public Camera UICamera;
     public GameObject camerasys;
     public GameObject selectedMeeplePos;
-
+    public string name;
     public CinemachineVirtualCamera virtualCamera;
     #endregion
 
@@ -57,6 +57,7 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        name = "Player1";
         score = 0;
         selectedPos.x = -1;
         selectedPos.y = -1;

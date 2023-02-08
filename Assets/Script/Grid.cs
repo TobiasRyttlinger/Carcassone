@@ -205,7 +205,36 @@ public class Grid
         return false;
     }
 
+    public List<connectionsList> findGrassConnections(Tile inTile, Tile.directions side, string Type, GameManager.GamePhases inPhase)
+    {
+        List<connectionsList> connected = find_connected_sides(inTile, side, Type);
+        Stack<connectionsList> open_Edges = new Stack<connectionsList>(find_adjacent_farmer_sides(connected));
+        List<connectionsList> explored = union(connected, open_Edges);
 
+        while (open_Edges.Count > 0)
+        {
+            connectionsList tileToExplore = open_Edges.Pop();
+
+            List<connectionsList> new_connected = find_connected_sides(tileToExplore.tile, tileToExplore.direction, Type);
+
+            //Union
+            connected = union(connected, new_connected);
+
+            Stack<connectionsList> new_open_Edges = new Stack<connectionsList>(find_adjacent_farmer_sides(new_connected));
+
+            explored = union(explored, new_connected);
+            foreach (connectionsList new_To_Explore in new_open_Edges)
+            {
+                if (!(explored.Contains(new_To_Explore)))
+                {
+                    open_Edges.Push(new_To_Explore);
+                    explored.Add(new_To_Explore);
+                }
+            }
+        }
+
+        return connected;
+    }
 
     public List<connectionsList> findConnections(Tile inTile, Tile.directions side, string Type, GameManager.GamePhases inPhase)
     {
@@ -259,9 +288,6 @@ public class Grid
                     case "ROAD":
                         inTile.finishedRoad = true;
                         break;
-                    case "GRASS":
-                        inTile.finishedRoad = true;
-                        break;
                     default:
                         // code block
                         break;
@@ -283,6 +309,11 @@ public class Grid
             Type == "CITY" ? intile.cityConnections :
             Type == "ROAD" ? intile.roadConnections : intile.grassConnections;
 
+
+        if (Type == "GRASS")
+        {
+            Debug.Log("Checking grass!");
+        }
         foreach (Tile.TileConnections connectedtile in typeOfConnection)
         {
             //Failsafe in case side does not match type.
@@ -424,7 +455,7 @@ public class Grid
     {
         List<Tile> completedChapels = new List<Tile>();
         List<Vector2> allNeighbours = placedTile.getNeighboursWithDiagonals((int)placedTile.x, (int)placedTile.y);
-        allNeighbours.Add(new Vector2(placedTile.x,placedTile.y));
+        allNeighbours.Add(new Vector2(placedTile.x, placedTile.y));
         foreach (Vector2 cord in allNeighbours)
         {
             if (!tileIsOccupied((int)cord.x, (int)cord.y))
@@ -434,12 +465,115 @@ public class Grid
             Tile testTile = gridArr[(int)cord.x, (int)cord.y];
             if (testTile.Chapel && testTile.placedMeepleChapel)
             {
-                List<Vector2> chapelNeighbours = testTile.getNeighboursWithDiagonals(testTile.x,testTile.y);
-                if(chapelNeighbours.Count == 8){
+                List<Vector2> chapelNeighbours = testTile.getNeighboursWithDiagonals(testTile.x, testTile.y);
+                if (chapelNeighbours.Count == 8)
+                {
                     completedChapels.Add(testTile);
                 }
             }
         }
         return completedChapels;
     }
+
+    public Tile.directions getFarmerSides(Tile.directions indir)
+    {
+
+        switch (indir)
+        {
+            case Tile.directions.TOP_RIGHT_RIGHT:
+                return Tile.directions.TOP_LEFT_LEFT;
+            case Tile.directions.TOP_RIGHT_TOP:
+                return Tile.directions.DOWN_RIGHT_DOWN;
+            case Tile.directions.DOWN_RIGHT_RIGHT:
+                return Tile.directions.DOWN_LEFT_LEFT;
+            case Tile.directions.DOWN_RIGHT_DOWN:
+                return Tile.directions.TOP_RIGHT_TOP;
+            case Tile.directions.DOWN_LEFT_DOWN:
+                return Tile.directions.TOP_LEFT_TOP;
+            case Tile.directions.DOWN_LEFT_LEFT:
+                return Tile.directions.DOWN_RIGHT_RIGHT;
+            case Tile.directions.TOP_LEFT_LEFT:
+                return Tile.directions.TOP_RIGHT_RIGHT;
+            case Tile.directions.TOP:
+                return Tile.directions.DOWN;
+            case Tile.directions.RIGHT:
+                return Tile.directions.LEFT;
+            case Tile.directions.DOWN:
+                return Tile.directions.TOP;
+            case Tile.directions.LEFT:
+                return Tile.directions.RIGHT;
+            default:
+                return Tile.directions.DOWN_LEFT_DOWN;
+        }
+
+
+    }
+
+    public List<connectionsList> find_adjacent_farmer_sides(List<connectionsList> connections)
+    {
+        List<connectionsList> adjacentTiles = new List<connectionsList>();
+
+        foreach (connectionsList con in connections)
+        {
+            if (con.direction == Tile.directions.CENTER)
+            {
+                //con.finished = true;
+                continue;
+            }
+            Tile.directions dir = con.direction;
+            Tile inTile = con.tile;
+            Tile.directions adjacent_direction = getFarmerSides(dir);
+
+            int x = inTile.x, y = inTile.y;
+            if (x == 0 && y == 0)
+            {
+                x = y = 25;
+
+            }
+            if (adjacent_direction == Tile.directions.DOWN_LEFT_DOWN || adjacent_direction == Tile.directions.DOWN_RIGHT_DOWN || adjacent_direction == Tile.directions.DOWN)
+            {
+                if (!tileIsOccupied(x, y + 1))
+                {
+
+                    continue;
+                }
+                adjacentTiles.Add(new connectionsList(gridArr[x, y + 1], adjacent_direction));
+
+            }
+            if (adjacent_direction == Tile.directions.TOP_LEFT_TOP || adjacent_direction == Tile.directions.TOP_RIGHT_TOP || adjacent_direction == Tile.directions.TOP)
+            {
+                if (!tileIsOccupied(x, y - 1))
+                {
+
+                    continue;
+                }
+                adjacentTiles.Add(new connectionsList(gridArr[x, y - 1], adjacent_direction));
+
+            }
+            if (adjacent_direction == Tile.directions.TOP_LEFT_LEFT || adjacent_direction == Tile.directions.DOWN_LEFT_LEFT || adjacent_direction == Tile.directions.LEFT)
+            {
+                if (!tileIsOccupied(x + 1, y))
+                {
+
+                    continue;
+                }
+                adjacentTiles.Add(new connectionsList(gridArr[x + 1, y], adjacent_direction));
+
+            }
+            if (adjacent_direction == Tile.directions.TOP_RIGHT_RIGHT || adjacent_direction == Tile.directions.DOWN_RIGHT_RIGHT || adjacent_direction == Tile.directions.RIGHT)
+            {
+                if (!tileIsOccupied(x - 1, y))
+                {
+
+                    continue;
+                }
+                adjacentTiles.Add(new connectionsList(gridArr[x - 1, y], adjacent_direction));
+
+            }
+
+        }
+        return adjacentTiles;
+    }
+
 }
+
