@@ -40,7 +40,7 @@ public class Player : MonoBehaviour
     private bool tileInstantiated = false;
     public bool placedTile = false;
     public bool placedMeep = false;
-
+    public int rotationcounter = 0;
     public Texture2D color;
     #endregion
 
@@ -169,6 +169,13 @@ public class Player : MonoBehaviour
 
             if (HasTile)
             {
+
+                if (Input.GetKey("r") && rotationcounter <= 0)
+                {
+                    rotate();
+                    rotationcounter = 30;
+                }
+                rotationcounter--;
                 //Update render texture!
                 if (!tileInstantiated)
                 {

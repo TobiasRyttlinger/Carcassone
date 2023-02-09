@@ -248,13 +248,35 @@ public class GameManager : MonoBehaviour
                                 }
                             }
 
-                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.DOWN_LEFT)
+                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.TOP)
                             {
-                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.DOWN_LEFT_DOWN)) || foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.DOWN_LEFT_LEFT)))
+                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.DOWN)))
                                 {
                                     falseMeep = false;
                                 }
                             }
+                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.DOWN)
+                            {
+                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.TOP)))
+                                {
+                                    falseMeep = false;
+                                }
+                            }
+                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.RIGHT)
+                            {
+                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.LEFT)))
+                                {
+                                    falseMeep = false;
+                                }
+                            }
+                            if (conn.tile.placedMeepsGrass.placedPositionOnTile == Tile.directions.LEFT)
+                            {
+                                if (foundGrassConnections.Contains(new Grid.connectionsList(conn.tile, Tile.directions.RIGHT)))
+                                {
+                                    falseMeep = false;
+                                }
+                            }
+
 
 
                             if (!falseMeep)
@@ -302,9 +324,13 @@ public class GameManager : MonoBehaviour
                             continue;
                         }
                         if (!g.gameObject.active) continue;
-                        ParticleSystem part = g.gameObject.GetComponent(typeof(ParticleSystem)) as ParticleSystem;
-                        var em = part.emission;
-                        em.enabled = true;
+                        if (CurrPlayer.meeples.Count > 0)
+                        {
+                            ParticleSystem part = g.gameObject.GetComponent(typeof(ParticleSystem)) as ParticleSystem;
+                            var em = part.emission;
+                            em.enabled = true;
+                        }
+
                     }
 
 
@@ -711,6 +737,7 @@ public class GameManager : MonoBehaviour
                     CurrPlayer.lastPlacedTile.placedMeepleChapel = (placeableMeep);
                     break;
                 default:
+                    placeableMeep.transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
                     CurrPlayer.lastPlacedTile.placedMeepsGrass = (placeableMeep);
                     break;
             }

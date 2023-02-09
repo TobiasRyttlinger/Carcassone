@@ -23,7 +23,7 @@ public class CameraMovement : MonoBehaviour
     void Update()
     {
 
-        Camera.transform.rotation = Quaternion.Euler(new Vector3(90,0,0));
+        
         panSpeed = -Vector3.Distance(transform.position, Camera.transform.position) / ((maxZoom - cameraFOV + 15) * 0.01f);
         //  Debug.Log("cameraFOV: " + cameraFOV);
         //zoomSpeed /= Vector3.Distance(transform.position, Camera.transform.position)*0.5f;
@@ -31,19 +31,19 @@ public class CameraMovement : MonoBehaviour
 
         if (Input.GetKey("w"))//|| Input.mousePosition.y >= Screen.height - panBorderThickness)
         {
-            pos.z -= 1f;
+            pos.z -= 0.1f;
         }
         if (Input.GetKey("s"))//|| Input.mousePosition.y <= panBorderThickness)
         {
-            pos.z += 1f;
+            pos.z += 0.1f;
         }
         if (Input.GetKey("d"))// || Input.mousePosition.x >= Screen.width - panBorderThickness)
         {
-            pos.x -= 1f;
+            pos.x -= 0.1f;
         }
         if (Input.GetKey("a"))//|| Input.mousePosition.x <= panBorderThickness)
         {
-            pos.x += 1f;
+            pos.x += 0.1f;
         }
 
         Vector3 MoveDir = Camera.transform.forward * pos.z + Camera.transform.right * pos.x;
@@ -61,11 +61,11 @@ public class CameraMovement : MonoBehaviour
 
         if (Input.mouseScrollDelta.y > 0)
         {
-            cameraFOV += zoomSpeed;
+            cameraFOV -= zoomSpeed;
         }
         if (Input.mouseScrollDelta.y < 0)
         {
-            cameraFOV -= zoomSpeed;
+            cameraFOV += zoomSpeed;
         }
         cameraFOV = Mathf.Clamp(cameraFOV, 3, maxZoom);
         Mathf.Lerp(Camera.m_Lens.FieldOfView, cameraFOV, 10f * Time.deltaTime);
@@ -77,9 +77,9 @@ public class CameraMovement : MonoBehaviour
     {
         float rotateDir = 0f;
 
-        if (Input.GetKey("q")) rotateDir += 1f;
+        if (Input.GetKey("q")) rotateDir += 0.1f;
 
-        if (Input.GetKey("e")) rotateDir -= 1f;
+        if (Input.GetKey("e")) rotateDir -= 0.1f;
         float rotationSpeed = 300f;
 
         transform.eulerAngles += new Vector3(0, rotateDir * rotationSpeed * Time.deltaTime, 0);

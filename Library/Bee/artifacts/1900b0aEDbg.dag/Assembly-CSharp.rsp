@@ -360,6 +360,7 @@
 "Assets/Script/BrickPlacement.cs"
 "Assets/Script/CameraMovement.cs"
 "Assets/Script/FogOfWar.cs"
+"Assets/Script/FogProjector.cs"
 "Assets/Script/GameManager.cs"
 "Assets/Script/Grid.cs"
 "Assets/Script/Meep.cs"
